@@ -50,10 +50,10 @@ def main(
     verbose: bool,
 ) -> None:
     """Scaffold a new Python package with best practices.
-    
+
     PACKAGE_NAME: Valid Python package identifier (e.g., my_awesome_pkg)
     TARGET_DIR: Absolute path to parent directory for the project
-    
+
     Example:
         scaffold-python my_package /home/user/projects
     """
@@ -107,15 +107,16 @@ def main(
 
         # Success message
         click.echo("\n" + "=" * 50)
-        click.secho("✨ Scaffold complete!", fg="green", bold=True)
-        click.echo(f"\n📍 Project created at: {result_path}")
+        click.secho(" Scaffold complete!", fg="green", bold=True)
+        click.echo(f"\n Project created at: {result_path}")
 
-        click.echo("\n📖 Next steps:")
+        click.echo("\n Next steps:")
         click.echo(f"  1. cd {result_path}")
         click.echo("  2. source .venv/bin/activate  # (or use uv run)")
-        click.echo(f"  3. uv run python -c \"import {package_name}; print({package_name}.hello())\"")
+        example_cmd = f'uv run python -c "import {package_name}; print({package_name}.hello())"'
+        click.echo(f"  3. {example_cmd}")
 
-        click.echo("\n🔍 Available commands:")
+        click.echo("\n Available commands:")
         click.echo("  • Run tests: pytest")
         click.echo("  • View coverage: open htmlcov/index.html")
         click.echo("  • Build docs: sphinx-build -b html docs docs/_build/html")
@@ -140,6 +141,7 @@ def main(
         click.secho(f"\n❌ Unexpected Error: {e}", fg="red", bold=True)
         if verbose:
             import traceback
+
             click.echo("\n" + traceback.format_exc())
         sys.exit(1)
 

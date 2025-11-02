@@ -7,7 +7,7 @@ name = "python-project-deployment"
 version = "0.1.0"
 description = "A scaffolding tool for creating new Python packages with best practices"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.13"
 license = {text = "MIT"}
 authors = [
     {name = "Magic Man", email = "deleterious420+PythonProjectDeployment@gmail.com"},
@@ -31,12 +31,18 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.4.0",
+    "pytest>=8.0.0",
     "pytest-cov>=4.1.0",
-    "black>=23.7.0",
+    "black>=23.11.0",
     "isort>=5.12.0",
-    "mypy>=1.5.0",
-    "ruff>=0.0.287",
+    "mypy>=1.7.0",
+    "ruff>=0.14.0",
+    "pre-commit>=3.8.0",
+    "bandit>=1.7.0",
+    "safety>=2.0.0",
+    "sphinx>=7.0.0",
+    "sphinx-rtd-theme>=2.0.0",
+    "sphinx-autodoc-typehints>=2.2.0",
 ]
 
 [project.scripts]
@@ -55,22 +61,23 @@ addopts = "--cov=python_project_deployment --cov-report=term-missing --cov-repor
 
 [tool.black]
 line-length = 100
-target-version = ['py313']
+target-version = ['py312']
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["python_project_deployment", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "B", "C4"]
+per-file-ignores = {"tests/*" = ["S101", "S108"]}
 
 [tool.isort]
 profile = "black"
 line_length = 100
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.13"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
-
-[tool.ruff]
-line-length = 100
-target-version = "py313"
-
-[tool.ruff.lint]
-select = ["E", "F", "I", "N", "W", "B", "C4"]
-per-file-ignores = {"tests/*" = ["S101", "S108"]}

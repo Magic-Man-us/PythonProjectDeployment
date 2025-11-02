@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 class ProjectConfig(BaseModel):
     """Configuration model for a Python project to be scaffolded.
-    
+
     Attributes:
         package_name: Valid Python package identifier
         target_dir: Absolute path to parent directory where project will be created
@@ -62,9 +62,7 @@ class ProjectConfig(BaseModel):
     def validate_target_dir(cls, v: Path) -> Path:
         """Validate that target_dir is an absolute path."""
         if not v.is_absolute():
-            raise ValueError(
-                f"target_dir must be an absolute path, got: {v}"
-            )
+            raise ValueError(f"target_dir must be an absolute path, got: {v}")
         return v
 
     @model_validator(mode="after")

@@ -26,14 +26,21 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.4.0",
+    "pytest>=8.0.0",
     "pytest-cov>=4.1.0",
-    "black>=23.7.0",
+    "black>=23.11.0",
     "isort>=5.12.0",
-    "mypy>=1.5.0",
-    "ruff>=0.0.287",
-    "sphinx>=7.2.0",
-    "furo>=2023.9.0",
+    "mypy>=1.7.0",
+    "ruff>=0.14.0",
+    "pre-commit>=3.8.0",
+    "bandit>=1.7.0",
+    "safety>=2.0.0",
+]
+
+docs = [
+    "sphinx>=7.0.0",
+    "sphinx-rtd-theme>=2.0.0",
+    "sphinx-autodoc-typehints>=2.2.0",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -45,19 +52,20 @@ addopts = "--cov={{ PKG }} --cov-report=term-missing --cov-report=html"
 
 [tool.black]
 line-length = 88
-target-version = ['py310']
+target-version = ['py312']
 
 [tool.isort]
 profile = "black"
 line_length = 88
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.13"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 
 [tool.ruff]
 line-length = 88
-target-version = "py310"
+target-version = "py312"
+src = ["src", "tests"]
 select = ["E", "F", "I", "N", "W", "B", "C4"]

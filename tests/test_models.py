@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
-
 from python_project_deployment.models import ProjectConfig
 
 
