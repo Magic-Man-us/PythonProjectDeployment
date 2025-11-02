@@ -7,9 +7,9 @@ This guide shows you how to use the Python Project Deployment tool to scaffold n
 The tool is installed in editable mode and ready to use:
 
 ```bash
-# Already done in your setup
+# Create or refresh a uv venv and install development extras
 uv venv
-uv pip install -e ".[dev]"
+uv sync --all-extras
 ```
 
 ## Quick Start
@@ -44,17 +44,17 @@ scaffold-python data_analyzer /home/user/projects \
 
 ### Verbose Mode
 
-  ## Installation
+## Installation
 
-  The tool is installed in editable mode and ready to use (uv-first):
+The tool is installed in editable mode and ready to use (uv-first):
 
-  ```bash
-  # Create or refresh a uv venv
-  uv venv
+```bash
+# Create or refresh a uv venv
+uv venv
 
-  # Install in editable mode with development extras
-  uv pip install -e ".[dev]"
-  ```
+# Install dev extras (sync will install extras listed in pyproject)
+uv sync --all-extras
+```
 See detailed progress:
 
 ```bash
@@ -95,58 +95,40 @@ After creating your package:
 
   After creating your package follow this uv-first workflow:
 
-  ```bash
-  # Navigate to the project
-  cd /path/to/your/my_package
-
-  # Use uv for any command (preferred)
-  uv run python -c "import my_package; print(my_package.hello())"
-
-  # Run tests
-  uv run pytest
-
-  # Run tests with coverage
-  uv run pytest --cov=my_package
-
-  # View coverage report (HTML)
-  open htmlcov/index.html
-
-  # Build documentation (Sphinx)
-  uv run python -m sphinx -b html docs docs/_build/html
-  open docs/_build/html/index.html
-
-  # Format code
-  uv run python -m black .
-  uv run isort .
-
-  # Type checking
-  uv run mypy my_package
-
-  # Linting
-  uv run ruff check my_package
-
-  # Run pre-commit hooks
-  uv run pre-commit install
-  uv run pre-commit run --all-files
-  ```
+```bash
+# Navigate to the project
 cd /path/to/your/my_package
 
-# Activate virtual environment
+# Use uv for any command (preferred)
 uv run python -c "import my_package; print(my_package.hello())"
 
+# Run tests
+uv run pytest
+
 # Run tests with coverage
-pytest --cov=my_package
-# Build documentation
-sphinx-build -b html docs docs/_build/html
+uv run pytest --cov=my_package
 
-  Our CI is uv-first and now uses a single canonical workflow: `.github/workflows/ci.yml`. It sets up `uv`, installs Python versions, syncs dependencies, and runs linters, mypy, pre-commit, tests and security scans.
-isort .
+# View coverage report (HTML)
+xdg-open htmlcov/index.html || true
 
-# Type check
-mypy my_package
+# Build documentation (Sphinx)
+uv run sphinx-build -b html docs docs/_build/html
+xdg-open docs/_build/html/index.html || true
 
-# Run linter
-ruff check my_package
+# Format code
+uv run ruff format .
+
+# Type checking
+uv run mypy my_package
+
+# Linting
+uv run ruff check my_package
+
+# Run pre-commit hooks
+uv run pre-commit install
+uv run pre-commit run --all-files
+```
+Our CI is uv-first and now uses a single canonical workflow: `.github/workflows/ci.yml`. It sets up `uv`, installs Python versions, syncs dependencies, and runs linters, mypy, pre-commit, tests and security scans.
 ```
 
 ## Features Included
@@ -231,7 +213,7 @@ If `scaffold-python` is not found:
 
 ```bash
 # Reinstall in editable mode
-uv pip install -e ".[dev]"
+uv sync --all-extras
 
 # Or run directly
 uv run python -m python_project_deployment.cli --help
@@ -244,7 +226,7 @@ If you see import errors after creation:
 ```bash
 cd your_new_package
 source .venv/bin/activate
-uv pip install -e ".[dev]"
+  uv sync --all-extras
 ```
 
 ### Git not initialized
@@ -265,7 +247,7 @@ cd $(pwd)  # run this from the repository root
 
 # Install in dev mode
 uv venv
-uv pip install -e ".[dev]"
+uv sync --all-extras
 
 # Run tests
 pytest tests/ -v

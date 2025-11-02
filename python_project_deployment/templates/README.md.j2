@@ -5,11 +5,9 @@
 ## Installation
 
 ```bash
-# Install with uv
-uv pip install -e .
-
-# Or with pip
-pip install -e .
+# Install (uv-first)
+uv venv
+uv sync --all-extras
 ```
 
 ## Usage
@@ -29,23 +27,22 @@ cd {{ PKG }}
 
 # Create virtual environment and install dependencies
 uv venv
-uv pip install -e ".[dev]"
+uv sync --all-extras
 
 # Run tests
-pytest
+uv run pytest
 
 # Run tests with coverage
-pytest --cov={{ PKG }} --cov-report=html
+uv run pytest --cov={{ PKG }} --cov-report=html
 
 # Format code
-black .
-isort .
+uv run ruff format .
 
 # Type check
-mypy {{ PKG }}
+uv run mypy {{ PKG }}
 
 # Build documentation
-sphinx-build -b html docs docs/_build/html
+uv run sphinx-build -b html docs docs/_build/html
 ```
 
 ## Testing

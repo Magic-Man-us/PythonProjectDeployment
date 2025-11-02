@@ -15,8 +15,8 @@ help:
 
 install:
 	@command -v uv >/dev/null 2>&1 || \
-	  { echo "uv not found. Please install uv in your Python environment. Example:"; \
-	    echo "  python -m pip install --upgrade pip && python -m pip install uv"; exit 1; }
+	  { echo "uv not found. Please install uv. Example:"; \
+	    echo "  curl -LsSf https://astral.sh/uv/install.sh | sh"; exit 1; }
 	uv sync --all-extras
 
 sync:

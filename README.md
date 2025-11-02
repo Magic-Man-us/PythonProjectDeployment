@@ -14,11 +14,9 @@ A modern scaffolding tool for creating new Python packages with best practices b
 ## Installation
 
 ```bash
-# Install with uv
-uv pip install -e .
-
-# Or with pip
-pip install -e .
+# Install (uv-first)
+uv venv
+uv sync --all-extras
 ```
 
 ## Usage
@@ -112,7 +110,7 @@ Direct uv commands:
 ```bash
 # Create a venv and install dev extras
 uv venv
-uv pip install -e ".[dev]"
+uv sync --all-extras
 
 # Run tests
 uv run pytest
