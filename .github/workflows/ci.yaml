@@ -44,26 +44,25 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-wheels-${{ matrix.python-version }}-
 
-      - name: Install build tools and uv
+      - name: Install uv and create venv
         run: |
-          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install --upgrade pip
           pip install uv
-
-      - name: Build wheelhouse for project and dev deps
-        run: |
-          # Build wheels for the project and development extras into .wheelhouse
-          # This will be fast when the cache is warm.
-          python -m pip wheel -w .wheelhouse "[dev]" || python -m pip wheel -w .wheelhouse ".[dev]"
-
-      - name: Create venv (uv)
-        run: |
-          # create a fresh .venv using uv
+          # create a fresh .venv using uv immediately so subsequent steps use uv
           uv venv
+
+      - name: Build wheelhouse for project and dev deps (via uv)
+        run: |
+          # Install build tools and build backend into the uv-managed venv
+          uv pip install --upgrade pip setuptools wheel hatchling
+          # Build wheels for the project and development extras into .wheelhouse
+          # Use --no-build-isolation so the installed hatchling is visible to the build
+          uv pip wheel -w .wheelhouse --no-build-isolation ".[dev]"
 
       - name: Install project dev dependencies into venv from wheelhouse
         run: |
           # Install using only the local wheels for reproducibility / speed
-          uv pip install --no-index --find-links .wheelhouse "[dev]" || uv pip install --no-index --find-links .wheelhouse ".[dev]"
+          uv pip install --no-index --find-links .wheelhouse ".[dev]"
 
       - name: Run ruff (via uv)
         run: uv run ruff check .
