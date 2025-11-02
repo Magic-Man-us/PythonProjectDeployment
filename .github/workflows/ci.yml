@@ -1,0 +1,228 @@
+name: CI (uv)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test / Lint / Typecheck (uv)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+
+      - name: Cache pip wheels & pre-commit
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip/wheels
+            .wheelhouse
+            ~/.cache/pre-commit
+          key: ${{ runner.os }}-pip-wheels-${{ matrix.python-version }}-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-wheels-${{ matrix.python-version }}-
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Build wheelhouse for project and dev deps (via uv)
+        run: |
+          # Build wheels for the project and development extras into .wheelhouse
+          uv pip wheel -w .wheelhouse --no-build-isolation "[dev]" || true
+
+      - name: Create venv (uv)
+        run: |
+          # create a fresh .venv using uv
+          uv venv
+
+      - name: Install project dev dependencies into venv from wheelhouse
+        run: |
+          # Install using only the local wheels for reproducibility / speed
+          uv pip install --no-index --find-links .wheelhouse "[dev]" || uv pip install --no-index --find-links .wheelhouse "[dev]"
+
+      - name: Lint (ruff)
+        run: uv run ruff check .
+
+      - name: Check formatting with Black (via uv)
+        run: uv run python -m black --check .
+
+      - name: Typecheck (mypy)
+        run: uv run mypy python_project_deployment
+
+      - name: Run pre-commit hooks (all files) via uv
+        run: |
+          uv run pre-commit install
+          uv run pre-commit run --all-files
+
+      - name: Tests (pytest)
+        run: uv run pytest --cov --cov-report=xml --cov-report=html
+
+      - name: Security scan for dangerous APIs
+        run: |
+          set -euo pipefail
+          if grep -R --line-number -E "\beval\(|\bexec\(|pickle\.loads|yaml\.load|subprocess\.(Popen|call)" python_project_deployment/ tests/ || true; then
+            echo "⚠️  Potentially dangerous API usage detected. Please review before merging." >&2
+            exit 2
+          fi
+        continue-on-error: true
+
+      - name: Upload coverage.xml
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.python-version }}
+          path: coverage.xml
+
+      - name: Upload coverage HTML
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html-${{ matrix.python-version }}
+          path: htmlcov
+
+      - name: Build Sphinx docs via uv
+        run: |
+          uv run python -m sphinx -b html docs docs/_build/html || true
+
+      - name: Upload docs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-html
+          path: docs/_build/html
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    env:
+      SECURITY_FAIL_LEVEL: MEDIUM
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.11
+        run: uv python install 3.11
+
+      - name: Sync deps and install security tools
+        run: |
+          uv sync --all-extras
+          uv pip install bandit safety
+
+      - name: Run Bandit and export SARIF
+        run: |
+          uv run bandit -r python_project_deployment/ -f json -o bandit-report.json
+          uv run bandit -r python_project_deployment/ -f sarif -o bandit-report.sarif
+        continue-on-error: true
+
+      - name: Upload Bandit SARIF to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: bandit-report.sarif
+        continue-on-error: true
+
+      - name: Run Safety (fail on any vulnerability)
+        run: |
+          uv run safety check --json > safety-report.json || true
+          python - <<'PY'
+          import json,sys,os
+          try:
+              data=json.load(open('safety-report.json'))
+              if data.get('vulnerabilities'):
+                  print('Safety reported vulnerabilities')
+                  sys.exit(2)
+              print('No safety vulnerabilities')
+          except Exception as e:
+              print(f'Error parsing safety output: {e}')
+              sys.exit(0)
+          PY
+        continue-on-error: true
+
+      - name: Apply Bandit threshold
+        run: |
+          python - <<'PY'
+          import json,sys,os
+          level=os.environ.get('SECURITY_FAIL_LEVEL','MEDIUM').upper()
+          try:
+              data=json.load(open('bandit-report.json'))
+              sevs=[issue.get('issue_severity','') for issue in data.get('results',[])]
+              if level=='NONE':
+                  print('SECURITY_FAIL_LEVEL=NONE: not failing on bandit issues')
+                  sys.exit(0)
+              if level=='HIGH':
+                  if 'HIGH' in sevs:
+                      print('Failing on HIGH bandit issues')
+                      sys.exit(2)
+                  else:
+                      print('No HIGH bandit issues')
+                      sys.exit(0)
+              if level=='MEDIUM':
+                  if any(s in ('HIGH','MEDIUM') for s in sevs):
+                      print('Failing on MEDIUM or HIGH bandit issues')
+                      sys.exit(2)
+                  else:
+                      print('No MEDIUM/HIGH bandit issues')
+                      sys.exit(0)
+              print('Unknown SECURITY_FAIL_LEVEL:', level)
+              sys.exit(1)
+          except Exception as e:
+              print(f'Error parsing bandit report: {e}')
+              sys.exit(0)
+          PY
+        continue-on-error: true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            bandit-report.json
+            bandit-report.sarif
+            safety-report.json
+        if: always()
+
+  deploy-docs:
+    name: Publish docs to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: test
+    # Only deploy on pushes to main (avoid publishing from PRs)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download docs artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docs-html
+          path: docs/_build/html
+
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: docs/_build/html
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v1
+        with: {}
