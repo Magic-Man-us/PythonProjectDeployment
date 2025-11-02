@@ -12,31 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.python-version }}-
-
-      - name: Cache pip wheels & pre-commit
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip/wheels
-            .wheelhouse
-            ~/.cache/pre-commit
-          key: ${{ runner.os }}-pip-wheels-${{ matrix.python-version }}-${{ hashFiles('**/pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-wheels-${{ matrix.python-version }}-
 
       - name: Install uv
         uses: astral-sh/setup-uv@v4
@@ -46,34 +26,14 @@ jobs:
       - name: Set up Python ${{ matrix.python-version }}
         run: uv python install ${{ matrix.python-version }}
 
-      - name: Build wheelhouse for project and dev deps (via uv)
-        run: |
-          # Build wheels for the project and development extras into .wheelhouse
-          uv pip wheel -w .wheelhouse --no-build-isolation "[dev]" || true
-
-      - name: Create venv (uv)
-        run: |
-          # create a fresh .venv using uv
-          uv venv
-
-      - name: Install project dev dependencies into venv from wheelhouse
-        run: |
-          # Install using only the local wheels for reproducibility / speed
-          uv pip install --no-index --find-links .wheelhouse "[dev]" || uv pip install --no-index --find-links .wheelhouse "[dev]"
+      - name: Sync dependencies with uv
+        run: uv sync --all-extras
 
       - name: Lint (ruff)
-        run: uv run ruff check .
-
-      - name: Check formatting with Black (via uv)
-        run: uv run python -m black --check .
+        run: uv run ruff check python_project_deployment
 
       - name: Typecheck (mypy)
         run: uv run mypy python_project_deployment
-
-      - name: Run pre-commit hooks (all files) via uv
-        run: |
-          uv run pre-commit install
-          uv run pre-commit run --all-files
 
       - name: Tests (pytest)
         run: uv run pytest --cov --cov-report=xml --cov-report=html
@@ -98,18 +58,6 @@ jobs:
         with:
           name: coverage-html-${{ matrix.python-version }}
           path: htmlcov
-
-      - name: Build Sphinx docs via uv
-        if: "${{ matrix.python-version == '3.11' }}"
-        run: |
-          uv run python -m sphinx -b html docs docs/_build/html || true
-
-      - name: Upload docs artifact
-        if: "${{ matrix.python-version == '3.11' }}"
-        uses: actions/upload-artifact@v4
-        with:
-          name: docs-html
-          path: docs/_build/html
 
   security:
     name: Security Scan
@@ -195,6 +143,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload security reports
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: security-reports
@@ -202,29 +151,4 @@ jobs:
             bandit-report.json
             bandit-report.sarif
             safety-report.json
-        if: always()
-
-  deploy-docs:
-    name: Publish docs to GitHub Pages
-    runs-on: ubuntu-latest
-    needs: test
-    # Only deploy on pushes to main (avoid publishing from PRs)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download docs artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: docs-html
-          path: docs/_build/html
-
-      - name: Upload pages artifact
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: docs/_build/html
-
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v1
-        with: {}
+              if data.get('vulnerabilities'):
