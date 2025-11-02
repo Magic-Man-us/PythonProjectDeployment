@@ -5,11 +5,11 @@ A modern scaffolding tool for creating new Python packages with best practices b
 ## Features
 
 -  **Fast Setup**: Create fully-configured Python packages in seconds
--  **uv Integration**: Modern dependency management with `uv`
+-  **uv Integration**: Modern dependency & venv management using `uv`
 -  **Testing Ready**: Pre-configured `pytest` with coverage
--  **Documentation**: Sphinx docs with `furo` theme
--  **CI/CD**: GitHub Actions workflow included
--  **Best Practices**: PEP 8 compliant, type hints, proper structure
+-  **Documentation**: Sphinx docs included
+-  **CI/CD**: uv-first GitHub Actions workflow (single canonical `ci.yml`)
+-  **Best Practices**: PEP 8 compliant, type hints, pre-commit hooks, type checking
 
 ## Installation
 
@@ -58,10 +58,11 @@ The tool automatically:
 1. ✅ Validates inputs
 2. ✅ Creates project structure
 3. ✅ Initializes git repository
-4. ✅ Sets up `uv` virtual environment
+4. ✅ Sets up `uv` virtual environment (preferred)
 5. ✅ Installs dev dependencies
 6. ✅ Runs initial tests
-7. ✅ Builds documentation
+7. ✅ Installs and runs `pre-commit` hooks
+8. ✅ Builds documentation
 
 ## Example
 
@@ -82,32 +83,55 @@ pytest
 sphinx-build -b html docs docs/_build/html
 ```
 
-## Development
+# Development
+
+Local development is uv-first. Use the provided Makefile for convenience or run uv directly.
+
+Using the Makefile (recommended):
 
 ```bash
-# Clone the repository
-git clone https://github.com/Magic-Man-us/PythonProjectDeployment.git
-cd python-project-deployment
+# Create or refresh a uv venv and install dev deps
+make install
 
-# Install in development mode
+# Run the test suite
+make test
+
+# Run linters and type checks
+make lint
+make type
+
+# Apply formatting (Black/isort)
+make format
+
+# Run pre-commit hooks locally
+make precommit
+```
+
+Direct uv commands:
+
+```bash
+# Create a venv and install dev extras
 uv venv
 uv pip install -e ".[dev]"
 
 # Run tests
-pytest
+uv run pytest
 
-# Format code
-black .
-isort .
+# Run linters
+uv run ruff check .
+uv run mypy python_project_deployment
 
-# Type check
-mypy python_project_deployment
+# Run pre-commit
+uv run pre-commit install
+uv run pre-commit run --all-files
 ```
 
 ## Requirements
 
-- Python 3.10+
-- uv (recommended) or pip
+- Python 3.11+ (recommended)
+- uv (strongly recommended) — the scaffolder / CI are uv-first
+
+If `uv` is not available, the tool will try to fall back to `pip`, but behaviour and reproducibility are better with `uv`.
 
 ## License
 

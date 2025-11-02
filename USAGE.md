@@ -44,6 +44,17 @@ scaffold-python data_analyzer /home/user/projects \
 
 ### Verbose Mode
 
+  ## Installation
+
+  The tool is installed in editable mode and ready to use (uv-first):
+
+  ```bash
+  # Create or refresh a uv venv
+  uv venv
+
+  # Install in editable mode with development extras
+  uv pip install -e ".[dev]"
+  ```
 See detailed progress:
 
 ```bash
@@ -80,29 +91,55 @@ After creating your package:
 
 ```bash
 # Navigate to the project
+  ### Post-Creation Workflow
+
+  After creating your package follow this uv-first workflow:
+
+  ```bash
+  # Navigate to the project
+  cd /path/to/your/my_package
+
+  # Use uv for any command (preferred)
+  uv run python -c "import my_package; print(my_package.hello())"
+
+  # Run tests
+  uv run pytest
+
+  # Run tests with coverage
+  uv run pytest --cov=my_package
+
+  # View coverage report (HTML)
+  open htmlcov/index.html
+
+  # Build documentation (Sphinx)
+  uv run python -m sphinx -b html docs docs/_build/html
+  open docs/_build/html/index.html
+
+  # Format code
+  uv run python -m black .
+  uv run isort .
+
+  # Type checking
+  uv run mypy my_package
+
+  # Linting
+  uv run ruff check my_package
+
+  # Run pre-commit hooks
+  uv run pre-commit install
+  uv run pre-commit run --all-files
+  ```
 cd /path/to/your/my_package
 
 # Activate virtual environment
-source .venv/bin/activate
-
-# Or use uv run for any command
 uv run python -c "import my_package; print(my_package.hello())"
-
-# Run tests
-pytest
 
 # Run tests with coverage
 pytest --cov=my_package
-
-# View coverage report
-open htmlcov/index.html
-
 # Build documentation
 sphinx-build -b html docs docs/_build/html
-open docs/_build/html/index.html
 
-# Format code
-black .
+  Our CI is uv-first and now uses a single canonical workflow: `.github/workflows/ci.yml`. It sets up `uv`, installs Python versions, syncs dependencies, and runs linters, mypy, pre-commit, tests and security scans.
 isort .
 
 # Type check
