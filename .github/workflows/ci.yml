@@ -83,25 +83,12 @@ jobs:
           name: coverage-html-${{ matrix.python-version }}
           path: htmlcov
 
-      # Upload Codecov once to avoid noisy duplicate uploads
-      - name: Upload to Codecov
-        if: matrix.python-version == '3.11'
-        uses: codecov/codecov-action@v4
-        with:
-          files: coverage.xml
-          flags: unittests
-          fail_ci_if_error: false
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
   security:
     name: Security Scan (Bandit + Safety)
     runs-on: ubuntu-latest
     needs: test
-    # Grant code scanning upload only here
     permissions:
       contents: read
-      security-events: write
 
     env:
       SECURITY_FAIL_LEVEL: MEDIUM
@@ -121,16 +108,10 @@ jobs:
       - name: Sync dependencies
         run: uv sync --all-extras --dev
 
-      - name: Run Bandit (JSON + SARIF)
+      - name: Run Bandit (JSON)
         run: |
-          uv run bandit -r src/ -f json  -o bandit-report.json || true
-          uv run bandit -r src/ -f sarif -o bandit-report.sarif || true
-
-      - name: Upload Bandit SARIF to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: bandit-report.sarif
-        continue-on-error: true
+          uv run bandit -r python_project_deployment/ -f json -o bandit-report.json || true
+          uv run bandit -r python_project_deployment/ -f txt
 
       - name: Run Safety (JSON)
         run: uv run safety check --json > safety-report.json || true
@@ -149,5 +130,4 @@ jobs:
           name: security-reports
           path: |
             bandit-report.json
-            bandit-report.sarif
             safety-report.json
