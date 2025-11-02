@@ -1,13 +1,15 @@
 # Python Project Deployment
 
 [![CI](https://github.com/Magic-Man-us/PythonProjectDeployment/actions/workflows/ci.yml/badge.svg)](https://github.com/Magic-Man-us/PythonProjectDeployment/actions/workflows/ci.yml)
-[![PyPI Version](https://img.shields.io/pypi/v/python-project-deployment.svg)](https://pypi.org/project/python-project-deployment)
-[![Python Versions](https://img.shields.io/badge/python-3.11%20|%203.12%20|%203.13%20|%203.14-blue)](https://www.python.org/downloads/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue.svg)](https://www.python.org/downloads/)
+
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Type checked: mypy](https://img.shields.io/badge/type%20checked-mypy-blue.svg)](http://mypy-lang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit)
+[![Security: safety](https://img.shields.io/badge/security-safety-blue.svg)](https://github.com/pyupio/safety)
 
 A modern scaffolding tool for creating new Python packages with best practices built-in.
 
