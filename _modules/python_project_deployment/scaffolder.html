@@ -1,0 +1,399 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>python_project_deployment.scaffolder &mdash; Python Project Deployment 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Python Project Deployment
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Python Project Deployment</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">python_project_deployment.scaffolder</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for python_project_deployment.scaffolder</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Core scaffolding logic for creating Python projects.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">jinja2</span><span class="w"> </span><span class="kn">import</span> <span class="n">Environment</span><span class="p">,</span> <span class="n">FileSystemLoader</span><span class="p">,</span> <span class="n">select_autoescape</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">python_project_deployment.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProjectConfig</span>
+
+
+<div class="viewcode-block" id="Scaffolder">
+<a class="viewcode-back" href="../../index.html#python_project_deployment.Scaffolder">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Scaffolder</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Main scaffolder class for creating Python projects.</span>
+
+<span class="sd">    This class handles the entire project scaffolding process:</span>
+<span class="sd">    1. Creating directory structure</span>
+<span class="sd">    2. Rendering templates</span>
+<span class="sd">    3. Initializing git repository</span>
+<span class="sd">    4. Setting up virtual environment</span>
+<span class="sd">    5. Installing dependencies</span>
+<span class="sd">    6. Running tests</span>
+<span class="sd">    7. Building documentation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">ProjectConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize scaffolder with project configuration.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            config: Project configuration with all necessary settings</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">template_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;templates&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">jinja_env</span> <span class="o">=</span> <span class="n">Environment</span><span class="p">(</span>
+            <span class="n">loader</span><span class="o">=</span><span class="n">FileSystemLoader</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">template_dir</span><span class="p">)),</span>
+            <span class="n">trim_blocks</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">lstrip_blocks</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">autoescape</span><span class="o">=</span><span class="n">select_autoescape</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="Scaffolder.scaffold">
+<a class="viewcode-back" href="../../index.html#python_project_deployment.Scaffolder.scaffold">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scaffold</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute the full scaffolding process.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Path to the created project directory</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If destination already exists</span>
+<span class="sd">            RuntimeError: If any step in the scaffolding process fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">destination_path</span>
+
+        <span class="c1"># Create directory structure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_directory_structure</span><span class="p">(</span><span class="n">dest</span><span class="p">)</span>
+
+        <span class="c1"># Render and write templates</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_render_templates</span><span class="p">(</span><span class="n">dest</span><span class="p">)</span>
+
+        <span class="c1"># Initialize git repository</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_git</span><span class="p">(</span><span class="n">dest</span><span class="p">)</span>
+
+        <span class="c1"># Setup virtual environment and install dependencies</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_environment</span><span class="p">(</span><span class="n">dest</span><span class="p">)</span>
+
+        <span class="c1"># Run tests</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_run_tests</span><span class="p">(</span><span class="n">dest</span><span class="p">)</span>
+
+        <span class="c1"># Build documentation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build_docs</span><span class="p">(</span><span class="n">dest</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dest</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_directory_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create the project directory structure.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dest: Destination path for the project</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Main directories</span>
+        <span class="n">dest</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">dest</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">package_name</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">()</span>
+        <span class="p">(</span><span class="n">dest</span> <span class="o">/</span> <span class="s2">&quot;tests&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">()</span>
+        <span class="p">(</span><span class="n">dest</span> <span class="o">/</span> <span class="s2">&quot;docs&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">()</span>
+        <span class="p">(</span><span class="n">dest</span> <span class="o">/</span> <span class="s2">&quot;.github&quot;</span> <span class="o">/</span> <span class="s2">&quot;workflows&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_render_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Render Jinja2 templates and write to destination.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dest: Destination path for the project</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">to_template_context</span><span class="p">()</span>
+
+        <span class="c1"># Template mapping: (template_file, destination_path)</span>
+        <span class="n">template_mappings</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s2">&quot;pyproject.toml.j2&quot;</span><span class="p">,</span> <span class="n">dest</span> <span class="o">/</span> <span class="s2">&quot;pyproject.toml&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;README.md.j2&quot;</span><span class="p">,</span> <span class="n">dest</span> <span class="o">/</span> <span class="s2">&quot;README.md&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;.gitignore.j2&quot;</span><span class="p">,</span> <span class="n">dest</span> <span class="o">/</span> <span class="s2">&quot;.gitignore&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;LICENSE.j2&quot;</span><span class="p">,</span> <span class="n">dest</span> <span class="o">/</span> <span class="s2">&quot;LICENSE&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;ci.yaml.j2&quot;</span><span class="p">,</span> <span class="n">dest</span> <span class="o">/</span> <span class="s2">&quot;.github&quot;</span> <span class="o">/</span> <span class="s2">&quot;workflows&quot;</span> <span class="o">/</span> <span class="s2">&quot;ci.yaml&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;Makefile.j2&quot;</span><span class="p">,</span> <span class="n">dest</span> <span class="o">/</span> <span class="s2">&quot;Makefile&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;dependabot.yml.j2&quot;</span><span class="p">,</span> <span class="n">dest</span> <span class="o">/</span> <span class="s2">&quot;.github&quot;</span> <span class="o">/</span> <span class="s2">&quot;dependabot.yml&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;package_init.py.j2&quot;</span><span class="p">,</span> <span class="n">dest</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">package_name</span> <span class="o">/</span> <span class="s2">&quot;__init__.py&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;hello.py.j2&quot;</span><span class="p">,</span> <span class="n">dest</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">package_name</span> <span class="o">/</span> <span class="s2">&quot;hello.py&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;test_hello.py.j2&quot;</span><span class="p">,</span> <span class="n">dest</span> <span class="o">/</span> <span class="s2">&quot;tests&quot;</span> <span class="o">/</span> <span class="s2">&quot;test_hello.py&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;conf.py.j2&quot;</span><span class="p">,</span> <span class="n">dest</span> <span class="o">/</span> <span class="s2">&quot;docs&quot;</span> <span class="o">/</span> <span class="s2">&quot;conf.py&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;index.rst.j2&quot;</span><span class="p">,</span> <span class="n">dest</span> <span class="o">/</span> <span class="s2">&quot;docs&quot;</span> <span class="o">/</span> <span class="s2">&quot;index.rst&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;.pre-commit-config.yaml.j2&quot;</span><span class="p">,</span> <span class="n">dest</span> <span class="o">/</span> <span class="s2">&quot;.pre-commit-config.yaml&quot;</span><span class="p">),</span>
+        <span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">template_name</span><span class="p">,</span> <span class="n">output_path</span> <span class="ow">in</span> <span class="n">template_mappings</span><span class="p">:</span>
+            <span class="n">template</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">jinja_env</span><span class="o">.</span><span class="n">get_template</span><span class="p">(</span><span class="n">template_name</span><span class="p">)</span>
+            <span class="n">rendered</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="o">**</span><span class="n">context</span><span class="p">)</span>
+            <span class="n">output_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">rendered</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_git</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize git repository and make initial commit.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dest: Project directory path</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">git_path</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;git&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">git_path</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;git not found in PATH; please install git&quot;</span><span class="p">)</span>
+
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">git_path</span><span class="p">,</span> <span class="s2">&quot;init&quot;</span><span class="p">,</span> <span class="s2">&quot;-q&quot;</span><span class="p">],</span>
+            <span class="n">cwd</span><span class="o">=</span><span class="n">dest</span><span class="p">,</span>
+            <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">git_path</span><span class="p">,</span> <span class="s2">&quot;add&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">],</span>
+            <span class="n">cwd</span><span class="o">=</span><span class="n">dest</span><span class="p">,</span>
+            <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">git_path</span><span class="p">,</span> <span class="s2">&quot;commit&quot;</span><span class="p">,</span> <span class="s2">&quot;-q&quot;</span><span class="p">,</span> <span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="s2">&quot;chore: initial scaffold&quot;</span><span class="p">],</span>
+            <span class="n">cwd</span><span class="o">=</span><span class="n">dest</span><span class="p">,</span>
+            <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_setup_environment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set up the virtual environment and install dependencies.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dest: Project directory path</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Try to use `uv` if available; otherwise create a venv and install necessary tools</span>
+        <span class="n">uv_path</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;uv&quot;</span><span class="p">)</span>
+        <span class="n">venv_dir</span> <span class="o">=</span> <span class="n">dest</span> <span class="o">/</span> <span class="s2">&quot;.venv&quot;</span>
+
+        <span class="k">if</span> <span class="n">uv_path</span><span class="p">:</span>
+            <span class="c1"># Use uv to create venv and run installs</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using uv binary: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">uv_path</span><span class="p">)</span>
+            <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="n">uv_path</span><span class="p">,</span> <span class="s2">&quot;venv&quot;</span><span class="p">],</span> <span class="n">cwd</span><span class="o">=</span><span class="n">dest</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># Use uv sync to install dev extras (preferred over direct pip usage)</span>
+            <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">uv_path</span><span class="p">,</span> <span class="s2">&quot;sync&quot;</span><span class="p">,</span> <span class="s2">&quot;--all-extras&quot;</span><span class="p">],</span>
+                <span class="n">cwd</span><span class="o">=</span><span class="n">dest</span><span class="p">,</span>
+                <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Install and run pre-commit inside the uv-managed venv</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">uv_path</span><span class="p">,</span> <span class="s2">&quot;run&quot;</span><span class="p">,</span> <span class="s2">&quot;pre-commit&quot;</span><span class="p">,</span> <span class="s2">&quot;install&quot;</span><span class="p">],</span>
+                    <span class="n">cwd</span><span class="o">=</span><span class="n">dest</span><span class="p">,</span>
+                    <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">uv_path</span><span class="p">,</span> <span class="s2">&quot;run&quot;</span><span class="p">,</span> <span class="s2">&quot;pre-commit&quot;</span><span class="p">,</span> <span class="s2">&quot;run&quot;</span><span class="p">,</span> <span class="s2">&quot;--all-files&quot;</span><span class="p">],</span>
+                    <span class="n">cwd</span><span class="o">=</span><span class="n">dest</span><span class="p">,</span>
+                    <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">proc</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;pre-commit hooks failed:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">proc</span><span class="o">.</span><span class="n">stdout</span> <span class="o">+</span> <span class="n">proc</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>  <span class="c1"># pragma: no cover - best-effort</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Failed to install/run pre-commit hooks using uv: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># No uv: create a standard venv and install uv + pre-commit into it</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Create venv</span>
+                <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">,</span> <span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="s2">&quot;venv&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">venv_dir</span><span class="p">)],</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+                <span class="n">pip_bin</span> <span class="o">=</span> <span class="n">venv_dir</span> <span class="o">/</span> <span class="s2">&quot;bin&quot;</span> <span class="o">/</span> <span class="s2">&quot;pip&quot;</span>
+
+                <span class="c1"># Upgrade pip and install uv and pre-commit into the venv</span>
+                <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                    <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">pip_bin</span><span class="p">),</span> <span class="s2">&quot;install&quot;</span><span class="p">,</span> <span class="s2">&quot;--upgrade&quot;</span><span class="p">,</span> <span class="s2">&quot;pip&quot;</span><span class="p">],</span>
+                    <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                    <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">pip_bin</span><span class="p">),</span> <span class="s2">&quot;install&quot;</span><span class="p">,</span> <span class="s2">&quot;uv&quot;</span><span class="p">,</span> <span class="s2">&quot;pre-commit&quot;</span><span class="p">],</span>
+                    <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Install package with dev dependencies using venv pip</span>
+                <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                    <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">pip_bin</span><span class="p">),</span> <span class="s2">&quot;install&quot;</span><span class="p">,</span> <span class="s2">&quot;-e&quot;</span><span class="p">,</span> <span class="s2">&quot;.[dev]&quot;</span><span class="p">],</span>
+                    <span class="n">cwd</span><span class="o">=</span><span class="n">dest</span><span class="p">,</span>
+                    <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Run pre-commit install and run using the venv&#39;s pre-commit binary</span>
+                <span class="n">precommit_bin</span> <span class="o">=</span> <span class="n">venv_dir</span> <span class="o">/</span> <span class="s2">&quot;bin&quot;</span> <span class="o">/</span> <span class="s2">&quot;pre-commit&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using venv pre-commit: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">precommit_bin</span><span class="p">)</span>
+                <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                    <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">precommit_bin</span><span class="p">),</span> <span class="s2">&quot;install&quot;</span><span class="p">],</span>
+                    <span class="n">cwd</span><span class="o">=</span><span class="n">dest</span><span class="p">,</span>
+                    <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                    <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">precommit_bin</span><span class="p">),</span> <span class="s2">&quot;run&quot;</span><span class="p">,</span> <span class="s2">&quot;--all-files&quot;</span><span class="p">],</span>
+                    <span class="n">cwd</span><span class="o">=</span><span class="n">dest</span><span class="p">,</span>
+                    <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">proc</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;pre-commit hooks failed:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">proc</span><span class="o">.</span><span class="n">stdout</span> <span class="o">+</span> <span class="n">proc</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>  <span class="c1"># pragma: no cover - best-effort</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Failed to create venv/install tools/run pre-commit: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_tests</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run pytest with coverage.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dest: Project directory path</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">uv_path</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;uv&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">uv_path</span><span class="p">:</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">uv_path</span><span class="p">,</span>
+                <span class="s2">&quot;run&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;pytest&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;--cov=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">package_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;--cov-report=term-missing&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running tests via uv: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">uv_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">python_bin</span> <span class="o">=</span> <span class="n">dest</span> <span class="o">/</span> <span class="s2">&quot;.venv&quot;</span> <span class="o">/</span> <span class="s2">&quot;bin&quot;</span> <span class="o">/</span> <span class="s2">&quot;python&quot;</span>
+            <span class="k">if</span> <span class="n">python_bin</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">python_bin</span><span class="p">),</span>
+                    <span class="s2">&quot;-m&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;pytest&quot;</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">&quot;--cov=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">package_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;--cov-report=term-missing&quot;</span><span class="p">,</span>
+                <span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running tests via venv python: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">python_bin</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">,</span>
+                    <span class="s2">&quot;-m&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;pytest&quot;</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">&quot;--cov=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">package_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;--cov-report=term-missing&quot;</span><span class="p">,</span>
+                <span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running tests via system python: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">)</span>
+
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">dest</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_build_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build Sphinx documentation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dest: Project directory path</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">uv_path</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;uv&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">uv_path</span><span class="p">:</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span><span class="n">uv_path</span><span class="p">,</span> <span class="s2">&quot;run&quot;</span><span class="p">,</span> <span class="s2">&quot;sphinx-build&quot;</span><span class="p">,</span> <span class="s2">&quot;-b&quot;</span><span class="p">,</span> <span class="s2">&quot;html&quot;</span><span class="p">,</span> <span class="s2">&quot;docs&quot;</span><span class="p">,</span> <span class="s2">&quot;docs/_build/html&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Building docs via uv: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">uv_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">python_bin</span> <span class="o">=</span> <span class="n">dest</span> <span class="o">/</span> <span class="s2">&quot;.venv&quot;</span> <span class="o">/</span> <span class="s2">&quot;bin&quot;</span> <span class="o">/</span> <span class="s2">&quot;python&quot;</span>
+            <span class="k">if</span> <span class="n">python_bin</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">python_bin</span><span class="p">),</span> <span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="s2">&quot;sphinx&quot;</span><span class="p">,</span> <span class="s2">&quot;-b&quot;</span><span class="p">,</span> <span class="s2">&quot;html&quot;</span><span class="p">,</span> <span class="s2">&quot;docs&quot;</span><span class="p">,</span> <span class="s2">&quot;docs/_build/html&quot;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Building docs via venv python: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">python_bin</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">,</span> <span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="s2">&quot;sphinx&quot;</span><span class="p">,</span> <span class="s2">&quot;-b&quot;</span><span class="p">,</span> <span class="s2">&quot;html&quot;</span><span class="p">,</span> <span class="s2">&quot;docs&quot;</span><span class="p">,</span> <span class="s2">&quot;docs/_build/html&quot;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Building docs via system python: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">)</span>
+
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">dest</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Python Project Deployment Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
