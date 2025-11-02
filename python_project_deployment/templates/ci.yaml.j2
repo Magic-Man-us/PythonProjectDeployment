@@ -82,3 +82,48 @@ jobs:
       run: |
         uv pip install twine
         twine check dist/*
+
+  security:
+    name: Security Scan (Bandit + Safety)
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+    - name: Create virtual environment
+      run: uv venv
+
+    - name: Install security tools
+      run: |
+        source .venv/bin/activate
+        uv pip install bandit safety
+
+    - name: Run Bandit (security linter)
+      run: |
+        source .venv/bin/activate
+        bandit -r {{ PKG }} -f json -o bandit-report.json || true
+        bandit -r {{ PKG }} -f txt
+
+    - name: Run Safety (dependency vulnerability scanner)
+      run: |
+        source .venv/bin/activate
+        safety check --json > safety-report.json || true
+        safety check
+
+    - name: Upload security reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
