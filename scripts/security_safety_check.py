@@ -10,7 +10,7 @@ def main() -> None:
     """Check safety results for any vulnerabilities."""
     report_path = Path("safety-report.json")
     if not report_path.exists():
-        print("No safety-report.json found, skipping.")
+        print("✅ No safety-report.json found, skipping.")
         return
 
     with report_path.open() as f:
