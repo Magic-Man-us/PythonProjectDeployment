@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [
-    {name = "Magic Man", email = "magicman@example.com"},
+    {name = "Magic Man", email = "deleterious420+PythonProjectDeployment@gmail.com"},
 ]
 keywords = ["scaffolding", "template", "python", "package", "project"]
 classifiers = [
@@ -43,8 +43,8 @@ dev = [
 scaffold-python = "python_project_deployment.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/magicman/python-project-deployment"
-Repository = "https://github.com/magicman/python-project-deployment"
+Homepage = "https://github.com/Magic-Man-us/PythonProjectDeployment"
+Repository = "https://github.com/Magic-Man-us/PythonProjectDeployment"
 
 [tool.hatch.build.targets.wheel]
 packages = ["python_project_deployment"]
@@ -54,12 +54,12 @@ testpaths = ["tests"]
 addopts = "--cov=python_project_deployment --cov-report=term-missing --cov-report=html"
 
 [tool.black]
-line-length = 88
-target-version = ['py310']
+line-length = 100
+target-version = ['py313']
 
 [tool.isort]
 profile = "black"
-line_length = 88
+line_length = 100
 
 [tool.mypy]
 python_version = "3.10"
@@ -68,6 +68,9 @@ warn_unused_configs = true
 disallow_untyped_defs = true
 
 [tool.ruff]
-line-length = 88
+line-length = 100
 target-version = "py310"
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "B", "C4"]
+per-file-ignores = {"tests/*" = ["S101", "S108"]}

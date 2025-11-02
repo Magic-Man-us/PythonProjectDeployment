@@ -8,36 +8,37 @@ from pydantic import ValidationError
 from python_project_deployment.models import ProjectConfig
 
 
-def test_project_config_valid() -> None:
+def test_project_config_valid(tmp_path: Path) -> None:
     """Test creating a valid ProjectConfig."""
     config = ProjectConfig(
         package_name="my_package",
-        target_dir=Path("/tmp/test"),
+        target_dir=tmp_path / "test",
     )
+
     assert config.package_name == "my_package"
-    assert config.target_dir == Path("/tmp/test")
+    assert config.target_dir == tmp_path / "test"
     assert config.author_name == "Your Name"
     assert config.author_email == "your.email@example.com"
 
 
-def test_project_config_invalid_package_name() -> None:
+def test_project_config_invalid_package_name(tmp_path: Path) -> None:
     """Test that invalid package names raise ValidationError."""
     with pytest.raises(ValidationError) as exc_info:
         ProjectConfig(
             package_name="123invalid",  # Starts with number
-            target_dir=Path("/tmp/test"),
+            target_dir=tmp_path / "test",
         )
 
     errors = exc_info.value.errors()
     assert any("package_name" in str(e["loc"]) for e in errors)
 
 
-def test_project_config_invalid_package_name_with_hyphen() -> None:
+def test_project_config_invalid_package_name_with_hyphen(tmp_path: Path) -> None:
     """Test that package names with hyphens raise ValidationError."""
     with pytest.raises(ValidationError):
         ProjectConfig(
             package_name="my-package",  # Contains hyphen
-            target_dir=Path("/tmp/test"),
+            target_dir=tmp_path / "test",
         )
 
 
@@ -71,20 +72,21 @@ def test_project_config_custom_values() -> None:
     assert config.license_type == "Apache-2.0"
 
 
-def test_destination_path() -> None:
+def test_destination_path(tmp_path: Path) -> None:
     """Test the destination_path property."""
     config = ProjectConfig(
         package_name="my_package",
-        target_dir=Path("/tmp/test"),
+        target_dir=tmp_path / "test",
     )
-    assert config.destination_path == Path("/tmp/test/my_package")
+
+    assert config.destination_path == tmp_path / "test" / "my_package"
 
 
-def test_to_template_context() -> None:
+def test_to_template_context(tmp_path: Path) -> None:
     """Test conversion to template context."""
     config = ProjectConfig(
         package_name="my_package",
-        target_dir=Path("/tmp/test"),
+        target_dir=tmp_path / "test",
         author_name="Jane Doe",
         author_email="jane@example.com",
         description="Test package",
@@ -100,7 +102,7 @@ def test_to_template_context() -> None:
     assert context["LICENSE"] == "MIT"
 
 
-def test_valid_package_names() -> None:
+def test_valid_package_names(tmp_path: Path) -> None:
     """Test various valid package names."""
     valid_names = [
         "simple",
@@ -114,12 +116,12 @@ def test_valid_package_names() -> None:
     for name in valid_names:
         config = ProjectConfig(
             package_name=name,
-            target_dir=Path("/tmp/test"),
+            target_dir=tmp_path / "test",
         )
         assert config.package_name == name
 
 
-def test_invalid_package_names() -> None:
+def test_invalid_package_names(tmp_path: Path) -> None:
     """Test various invalid package names."""
     invalid_names = [
         "123start",  # Starts with number
@@ -133,5 +135,5 @@ def test_invalid_package_names() -> None:
         with pytest.raises(ValidationError):
             ProjectConfig(
                 package_name=name,
-                target_dir=Path("/tmp/test"),
+                target_dir=tmp_path / "test",
             )
