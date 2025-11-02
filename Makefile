@@ -25,6 +25,9 @@ sync:
 test:
 	uv run pytest --cov
 
+lock:
+	uv lock
+
 lint:
 	uv run ruff check .
 
