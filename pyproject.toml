@@ -1,0 +1,73 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "python-project-deployment"
+version = "0.1.0"
+description = "A scaffolding tool for creating new Python packages with best practices"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Magic Man", email = "magicman@example.com"},
+]
+keywords = ["scaffolding", "template", "python", "package", "project"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "click>=8.1.0",
+    "jinja2>=3.1.0",
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.7.0",
+    "isort>=5.12.0",
+    "mypy>=1.5.0",
+    "ruff>=0.0.287",
+]
+
+[project.scripts]
+scaffold-python = "python_project_deployment.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/magicman/python-project-deployment"
+Repository = "https://github.com/magicman/python-project-deployment"
+
+[tool.hatch.build.targets.wheel]
+packages = ["python_project_deployment"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=python_project_deployment --cov-report=term-missing --cov-report=html"
+
+[tool.black]
+line-length = 88
+target-version = ['py310']
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+select = ["E", "F", "I", "N", "W", "B", "C4"]

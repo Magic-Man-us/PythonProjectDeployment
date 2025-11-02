@@ -1,0 +1,56 @@
+{{ PKG }}
+{{ "=" * PKG|length }}
+
+{{ DESCRIPTION }}
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   installation
+   usage
+   api
+
+Installation
+============
+
+Install using pip or uv:
+
+.. code-block:: bash
+
+   # Using pip
+   pip install {{ PKG }}
+
+   # Using uv
+   uv pip install {{ PKG }}
+
+Quick Start
+===========
+
+.. code-block:: python
+
+   from {{ PKG }} import hello
+
+   # Use the hello function
+   result = hello("World")
+   print(result)  # Output: Hello, World!
+
+API Reference
+=============
+
+.. automodule:: {{ PKG }}
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: {{ PKG }}.hello
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

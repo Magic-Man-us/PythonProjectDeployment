@@ -1,0 +1,36 @@
+"""Tests for the hello module."""
+
+import pytest
+
+from {{ PKG }}.hello import hello
+
+
+def test_hello_default() -> None:
+    """Test hello function with default argument."""
+    result = hello()
+    assert result == "Hello, World!"
+
+
+def test_hello_custom_name() -> None:
+    """Test hello function with custom name."""
+    result = hello("Alice")
+    assert result == "Hello, Alice!"
+
+
+def test_hello_empty_string() -> None:
+    """Test hello function with empty string."""
+    result = hello("")
+    assert result == "Hello, !"
+
+
+@pytest.mark.parametrize(
+    "name,expected",
+    [
+        ("Bob", "Hello, Bob!"),
+        ("Charlie", "Hello, Charlie!"),
+        ("123", "Hello, 123!"),
+    ],
+)
+def test_hello_parametrized(name: str, expected: str) -> None:
+    """Test hello function with various inputs."""
+    assert hello(name) == expected

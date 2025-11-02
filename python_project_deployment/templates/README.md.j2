@@ -1,0 +1,82 @@
+# {{ PKG }}
+
+{{ DESCRIPTION }}
+
+## Installation
+
+```bash
+# Install with uv
+uv pip install -e .
+
+# Or with pip
+pip install -e .
+```
+
+## Usage
+
+```python
+import {{ PKG }}
+
+# Your code here
+```
+
+## Development
+
+```bash
+# Clone and install
+git clone <repository-url>
+cd {{ PKG }}
+
+# Create virtual environment and install dependencies
+uv venv
+uv pip install -e ".[dev]"
+
+# Run tests
+pytest
+
+# Run tests with coverage
+pytest --cov={{ PKG }} --cov-report=html
+
+# Format code
+black .
+isort .
+
+# Type check
+mypy {{ PKG }}
+
+# Build documentation
+sphinx-build -b html docs docs/_build/html
+```
+
+## Testing
+
+```bash
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov={{ PKG }}
+
+# Run specific test file
+pytest tests/test_example.py
+```
+
+## Documentation
+
+Documentation is built with Sphinx and uses the Furo theme.
+
+```bash
+# Build HTML docs
+sphinx-build -b html docs docs/_build/html
+
+# View docs
+open docs/_build/html/index.html
+```
+
+## License
+
+{{ LICENSE }}
+
+## Author
+
+{{ AUTHOR_NAME }} <{{ AUTHOR_EMAIL }}>
