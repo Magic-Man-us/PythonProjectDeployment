@@ -18,6 +18,7 @@
 ## Related Issue
 
 <!-- Link to the issue this PR addresses, if applicable -->
+<!-- Use "Fixes #123", "Closes #123", or "Related to #123" as appropriate -->
 
 Fixes #(issue number)
 
@@ -25,9 +26,9 @@ Fixes #(issue number)
 
 <!-- List the specific changes made in this PR -->
 
-- 
-- 
-- 
+- [Brief description of change 1]
+- [Brief description of change 2]
+- [Brief description of change 3] 
 
 ## Testing
 
