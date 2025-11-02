@@ -135,3 +135,4 @@ Thumbs.db
 
 # Local wheelhouse built in CI or locally
 .wheelhouse/
+.wheelhouse
