@@ -224,7 +224,7 @@ To develop or modify the scaffolder itself:
 
 ```bash
 # Clone/navigate to the scaffolder directory
-cd /home/magicman/workplace/PythonProjectDeployment
+cd $(pwd)  # run this from the repository root
 
 # Install in dev mode
 uv venv

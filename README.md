@@ -86,7 +86,7 @@ sphinx-build -b html docs docs/_build/html
 
 ```bash
 # Clone the repository
-git clone https://github.com/magicman/python-project-deployment.git
+git clone https://github.com/Magic-Man-us/PythonProjectDeployment.git
 cd python-project-deployment
 
 # Install in development mode
