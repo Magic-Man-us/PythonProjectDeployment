@@ -29,7 +29,7 @@ lint:
 	uv run ruff check .
 
 type:
-	uv run mypy {{ PKG }}
+	uv run mypy src/{{ PKG }}
 
 format:
 	uv run ruff format .

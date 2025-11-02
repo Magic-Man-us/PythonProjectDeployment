@@ -6,6 +6,14 @@ from pathlib import Path
 import click
 from pydantic import ValidationError
 
+from python_project_deployment.config import ScaffolderSettings
+from python_project_deployment.exceptions import (
+    ConfigurationError,
+    PrerequisiteError,
+    ScaffolderError,
+    SecurityError,
+)
+from python_project_deployment.logging_config import configure_logging
 from python_project_deployment.models import ProjectConfig
 from python_project_deployment.scaffolder import Scaffolder
 
@@ -35,10 +43,38 @@ from python_project_deployment.scaffolder import Scaffolder
     help="License type (MIT, Apache-2.0, GPL-3.0, etc.)",
 )
 @click.option(
+    "--github-username",
+    default="your-username",
+    help="GitHub username for URLs and badges",
+)
+@click.option(
     "--verbose",
     "-v",
     is_flag=True,
     help="Enable verbose output",
+)
+@click.option(
+    "--log-level",
+    type=click.Choice(["DEBUG", "INFO", "WARNING", "ERROR"], case_sensitive=False),
+    default=None,
+    help="Set logging level (overrides --verbose and SCAFFOLD_LOG_LEVEL)",
+)
+@click.option(
+    "--timeout",
+    type=int,
+    default=None,
+    help="Default timeout in seconds for operations (overrides SCAFFOLD_DEFAULT_TIMEOUT)",
+)
+@click.option(
+    "--env-file",
+    type=click.Path(exists=True, dir_okay=False),
+    default=None,
+    help="Path to .env file for configuration (default: .scaffold.env in current dir)",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Preview changes without making them (show what would be created)",
 )
 def main(
     package_name: str,
@@ -47,7 +83,12 @@ def main(
     author_email: str,
     description: str,
     license_type: str,
+    github_username: str,
     verbose: bool,
+    log_level: str | None,
+    timeout: int | None,
+    env_file: str | None,
+    dry_run: bool,
 ) -> None:
     """Scaffold a new Python package with best practices.
 
@@ -64,6 +105,37 @@ def main(
     target_path = Path(target_dir).resolve()
 
     try:
+        # Load scaffolder settings (supports .env files and env vars)
+        settings_kwargs = {}
+        if log_level:
+            settings_kwargs["log_level"] = log_level.upper()
+        if dry_run:
+            settings_kwargs["dry_run"] = True
+
+        settings = ScaffolderSettings(**settings_kwargs)
+
+        # Configure logging with settings
+        configure_logging(settings)
+
+        if dry_run:
+            click.secho("\n🔍 DRY RUN MODE - No changes will be made", fg="yellow", bold=True)
+
+        if verbose:
+            click.echo("\n⚙️  Settings:")
+            click.echo(f"  Mode: {'DRY RUN' if settings.dry_run else 'EXECUTE'}")
+            click.echo(f"  Log Level: {settings.log_level}")
+            click.echo(f"  Validate Binaries: {settings.validate_binaries}")
+            click.echo(f"  Git Timeout: {settings.timeout_git}s")
+            click.echo(f"  Install Timeout: {settings.timeout_install}s")
+            click.echo(f"  Test Timeout: {settings.timeout_test}s")
+            click.echo(f"  Docs Timeout: {settings.timeout_docs}s")
+
+        # Validate license type using the model's VALID_LICENSES ClassVar
+        if license_type not in ProjectConfig.VALID_LICENSES:
+            click.secho(f"\n❌ Invalid license type: {license_type}", fg="red", bold=True)
+            click.echo(f"  Valid options: {', '.join(ProjectConfig.VALID_LICENSES)}")
+            sys.exit(1)
+
         # Create configuration
         config = ProjectConfig(
             package_name=package_name,
@@ -71,7 +143,8 @@ def main(
             author_name=author_name,
             author_email=author_email,
             description=description,
-            license_type=license_type,
+            license_type=license_type,  # type: ignore[arg-type]
+            github_username=github_username,
         )
 
         if verbose:
@@ -82,9 +155,10 @@ def main(
             click.echo(f"  Author: {config.author_name} <{config.author_email}>")
             click.echo(f"  Description: {config.description}")
             click.echo(f"  License: {config.license_type}")
+            click.echo(f"  GitHub Username: {config.github_username}")
 
         # Create scaffolder and execute
-        scaffolder = Scaffolder(config)
+        scaffolder = Scaffolder(config, settings)
 
         click.echo("\n📁 Creating project structure...")
         if verbose:
@@ -131,10 +205,49 @@ def main(
             click.echo(f"  • {field}: {msg}")
         sys.exit(1)
 
+    except PrerequisiteError as e:
+        click.secho("\n❌ Missing Prerequisites:", fg="red", bold=True)
+        click.echo(f"  {e}")
+        if e.context:
+            click.echo("\n  Additional context:")
+            for key, value in e.context.items():
+                click.echo(f"    {key}: {value}")
+        sys.exit(1)
+
+    except SecurityError as e:
+        click.secho("\n❌ Security Error:", fg="red", bold=True)
+        click.echo(f"  {e}")
+        if e.context:
+            click.echo("\n  Security violation details:")
+            for key, value in e.context.items():
+                click.echo(f"    {key}: {value}")
+        sys.exit(1)
+
+    except ConfigurationError as e:
+        click.secho("\n❌ Configuration Error:", fg="red", bold=True)
+        click.echo(f"  {e}")
+        if e.context:
+            click.echo("\n  Configuration details:")
+            for key, value in e.context.items():
+                click.echo(f"    {key}: {value}")
+        sys.exit(1)
+
     except FileExistsError as e:
         click.secho(f"\n❌ Error: {e}", fg="red", bold=True)
         click.echo("  The destination directory already exists.")
         click.echo("  Please choose a different package name or target directory.")
+        sys.exit(1)
+
+    except ScaffolderError as e:
+        click.secho(f"\n❌ Scaffolding Error: {e}", fg="red", bold=True)
+        if e.context:
+            click.echo("\n  Error context:")
+            for key, value in e.context.items():
+                click.echo(f"    {key}: {value}")
+        if verbose:
+            import traceback
+
+            click.echo("\n" + traceback.format_exc())
         sys.exit(1)
 
     except Exception as e:

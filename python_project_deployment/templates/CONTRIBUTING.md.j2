@@ -1,0 +1,75 @@
+# Contributing to {{ PKG }}
+
+Thank you for considering contributing to {{ PKG }}!
+
+## Development Setup
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/{{ AUTHOR_NAME }}/{{ PKG }}.git
+   cd {{ PKG }}
+   ```
+
+2. Create a virtual environment with uv:
+   ```bash
+   uv venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   ```
+
+3. Install dependencies:
+   ```bash
+   uv sync --all-extras
+   ```
+
+4. Install pre-commit hooks:
+   ```bash
+   uv run pre-commit install
+   ```
+
+## Development Workflow
+
+### Running Tests
+
+```bash
+make test
+```
+
+### Running Linters
+
+```bash
+make lint
+```
+
+### Building Documentation
+
+```bash
+make docs
+```
+
+## Code Style
+
+- Follow PEP 8, PEP 257, and PEP 484
+- Use type hints for all functions
+- Write docstrings for all public APIs
+- Keep functions focused and testable
+
+## Pull Request Process
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Make your changes with clear, atomic commits
+4. Write or update tests as needed
+5. Ensure all tests pass: `make test`
+6. Run pre-commit checks: `pre-commit run --all-files`
+7. Push to your fork and submit a pull request
+
+## Reporting Issues
+
+- Use the GitHub issue tracker
+- Provide clear reproduction steps
+- Include relevant logs and error messages
+- Specify your environment (OS, Python version, etc.)
+
+## License
+
+By contributing, you agree that your contributions will be licensed under the {{ LICENSE }} License.

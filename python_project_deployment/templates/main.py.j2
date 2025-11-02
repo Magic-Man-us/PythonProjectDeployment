@@ -1,0 +1,19 @@
+"""Main entry point for {{ PKG }}."""
+
+import logging
+
+from {{ PKG }}.logger.logger import setup_logger
+
+
+def main() -> None:
+    """Execute the main application logic."""
+    logger = setup_logger(__name__)
+    logger.info("Starting {{ PKG }} application")
+
+    # TODO: Implement your application logic here
+
+    logger.info("Application completed successfully")
+
+
+if __name__ == "__main__":
+    main()

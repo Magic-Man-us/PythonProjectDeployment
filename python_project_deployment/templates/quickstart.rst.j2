@@ -1,0 +1,126 @@
+Quick Start
+===========
+
+This guide will help you get started with {{ PKG }} quickly.
+
+Installation
+-----------
+
+Using pip
+~~~~~~~~
+
+.. code-block:: bash
+
+   pip install {{ PKG }}
+
+Using uv (recommended)
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   uv pip install {{ PKG }}
+
+For development
+~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   git clone https://github.com/{{ GITHUB_USERNAME }}/{{ PKG }}.git
+   cd {{ PKG }}
+   uv sync --all-extras
+
+Basic Usage
+----------
+
+Here's a simple example to get you started:
+
+.. code-block:: python
+
+   from {{ PKG }} import ExampleClass
+
+   # Create an instance
+   obj = ExampleClass(name="demo", value=42)
+
+   # Process data
+   result = obj.process()
+   print(result)
+
+Common Tasks
+-----------
+
+Running Tests
+~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   # Run all tests
+   uv run pytest
+
+   # Run with coverage
+   uv run pytest --cov
+
+   # Run specific test file
+   uv run pytest tests/test_example.py
+
+Code Quality
+~~~~~~~~~~~
+
+.. code-block:: bash
+
+   # Lint code
+   uv run ruff check .
+
+   # Format code
+   uv run ruff format .
+
+   # Type check
+   uv run mypy src
+
+Building Documentation
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   # Build HTML documentation
+   uv run sphinx-build -b html docs docs/_build/html
+
+   # Open in browser
+   open docs/_build/html/index.html
+
+Next Steps
+---------
+
+* Read the full :doc:`usage` guide for detailed examples
+* Check out the :doc:`api/modules` for API reference
+* Learn about :doc:`development` practices
+* Review :doc:`security` guidelines
+
+Troubleshooting
+--------------
+
+Package not found
+~~~~~~~~~~~~~~~~
+
+If you get an import error, make sure you've installed the package:
+
+.. code-block:: bash
+
+   uv pip list | grep {{ PKG }}
+
+Virtual environment issues
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you're having environment issues, try recreating it:
+
+.. code-block:: bash
+
+   rm -rf .venv
+   uv venv
+   uv sync --all-extras
+
+Getting Help
+-----------
+
+* `GitHub Issues <https://github.com/{{ GITHUB_USERNAME }}/{{ PKG }}/issues>`_
+* `GitHub Discussions <https://github.com/{{ GITHUB_USERNAME }}/{{ PKG }}/discussions>`_
+* `Documentation <https://{{ PKG }}.readthedocs.io>`_

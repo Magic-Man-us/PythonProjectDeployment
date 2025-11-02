@@ -1,7 +1,10 @@
-Python Project Deployment Documentation
-========================================
+Python Project Deployment
+==========================
 
-A modern scaffolding tool for creating new Python packages with best practices built-in.
+**Automated Python project scaffolding with best practices built-in.**
+
+A modern scaffolding tool that creates production-ready Python projects with comprehensive
+testing, linting, type checking, CI/CD, and documentation infrastructure.
 
 .. toctree::
    :maxdepth: 2
@@ -11,49 +14,39 @@ A modern scaffolding tool for creating new Python packages with best practices b
    usage
    api
 
-Installation
-============
+Features
+--------
 
-Install using uv (preferred):
-
-.. code-block:: bash
-
-   uv venv
-   uv sync --all-extras
+* 🚀 **Modern Python packaging** with ``pyproject.toml`` and ``uv``
+* 🔍 **Pre-configured linting** (Ruff), type checking (mypy), testing (pytest)
+* 📦 **Multiple license options** (MIT, Apache-2.0, GPL-3.0, BSD-3-Clause)
+* 🔄 **GitHub Actions CI/CD** workflows included
+* 📚 **Sphinx documentation** with auto-generated API docs
+* 🎯 **Pre-commit hooks** for code quality enforcement
 
 Quick Start
-===========
+-----------
 
-Create a new Python package:
+Install and create a new project:
 
 .. code-block:: bash
 
-   scaffold-python my_awesome_package /path/to/parent/directory
+   # Install
+   pip install python-project-deployment
 
-API Reference
-=============
+   # Create a new project
+   scaffold-python my_package /path/to/parent/directory
 
-.. automodule:: python_project_deployment
-   :members:
-   :undoc-members:
-   :show-inheritance:
+The scaffolder creates a complete project structure with:
 
-.. automodule:: python_project_deployment.cli
-   :members:
-   :undoc-members:
-   :show-inheritance:
+* Package source code with entry point
+* Comprehensive test suite with pytest
+* Pre-configured Makefile for common tasks
+* GitHub Actions workflows for CI/CD
+* Sphinx documentation with auto-generated API docs
+* Pre-commit hooks for code quality
 
-.. automodule:: python_project_deployment.models
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: python_project_deployment.scaffolder
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Indices and tables
+Indices and Tables
 ==================
 
 * :ref:`genindex`

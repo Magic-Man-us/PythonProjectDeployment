@@ -1,0 +1,325 @@
+Security
+========
+
+Security Policy and Guidelines for {{ PKG }}.
+
+Reporting Security Issues
+-------------------------
+
+**Please do not report security vulnerabilities through public GitHub issues.**
+
+Instead, please report them via email to {{ AUTHOR_EMAIL }}.
+
+You should receive a response within 48 hours. If for some reason you do not, please follow up via email to ensure we received your original message.
+
+Please include the following information in your report:
+
+* Type of issue (e.g., buffer overflow, SQL injection, cross-site scripting, etc.)
+* Full paths of source file(s) related to the issue
+* Location of the affected source code (tag/branch/commit or direct URL)
+* Any special configuration required to reproduce the issue
+* Step-by-step instructions to reproduce the issue
+* Proof-of-concept or exploit code (if possible)
+* Impact of the issue, including how an attacker might exploit it
+
+This information will help us triage your report more quickly.
+
+Supported Versions
+-----------------
+
+We release patches for security vulnerabilities for the following versions:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Version
+     - Supported
+   * - Latest
+     - ✅ Yes
+   * - < Latest
+     - ❌ No
+
+We recommend always using the latest version.
+
+Security Practices
+-----------------
+
+Automated Scanning
+~~~~~~~~~~~~~~~~~
+
+This project uses automated security scanning:
+
+* **Bandit**: Static analysis security scanner for Python
+* **Safety** (optional): Checks dependencies for known vulnerabilities
+* **Dependabot**: Automated dependency updates
+* **GitHub Security Advisories**: Alerts for vulnerable dependencies
+
+Security scanning runs on every pull request and push to main branch.
+
+Dependency Management
+~~~~~~~~~~~~~~~~~~~~
+
+Dependencies are managed via ``pyproject.toml`` and ``uv``:
+
+* Pinned versions prevent unexpected updates
+* Dependabot creates PRs for security updates
+* Regular dependency audits
+
+Code Review
+~~~~~~~~~~
+
+All code changes require:
+
+* Pull request review before merging
+* CI checks passing (including security scans)
+* Pre-commit hooks validation
+
+Security Best Practices
+----------------------
+
+For Contributors
+~~~~~~~~~~~~~~~
+
+When contributing to this project:
+
+1. **Never commit secrets**
+
+   * No API keys, passwords, or tokens in code
+   * Use environment variables for sensitive data
+   * Check ``.gitignore`` includes sensitive files
+
+2. **Validate all inputs**
+
+   .. code-block:: python
+
+      def process_user_input(data: str) -> str:
+          """Process user input safely."""
+          # Validate input
+          if not isinstance(data, str):
+              raise TypeError("Input must be a string")
+
+          # Sanitize input
+          sanitized = data.strip()
+
+          # Limit length
+          if len(sanitized) > 1000:
+              raise ValueError("Input too long")
+
+          return sanitized
+
+3. **Avoid dangerous functions**
+
+   Avoid these unless absolutely necessary:
+
+   * ``eval()``
+   * ``exec()``
+   * ``pickle.loads()`` (use JSON instead)
+   * ``yaml.load()`` (use ``yaml.safe_load()``)
+   * ``subprocess`` with ``shell=True``
+
+4. **Use type hints**
+
+   Type hints help catch bugs early:
+
+   .. code-block:: python
+
+      def safe_function(data: str, count: int) -> list[str]:
+          """Type hints prevent many security issues."""
+          return [data] * count
+
+5. **Handle errors properly**
+
+   .. code-block:: python
+
+      try:
+          result = risky_operation()
+      except SpecificException as e:
+          logger.error("Operation failed: %s", e)
+          raise  # Re-raise for caller to handle
+      except Exception as e:
+          logger.critical("Unexpected error: %s", e)
+          raise
+
+For Users
+~~~~~~~~
+
+When using this package:
+
+1. **Keep dependencies updated**
+
+   .. code-block:: bash
+
+      # Check for updates
+      uv pip list --outdated
+
+      # Update dependencies
+      uv sync --upgrade
+
+2. **Use virtual environments**
+
+   Always use isolated environments:
+
+   .. code-block:: bash
+
+      # Create isolated environment
+      uv venv
+      uv sync
+
+3. **Verify package authenticity**
+
+   When installing from PyPI, verify the package:
+
+   .. code-block:: bash
+
+      # Check package details
+      uv pip show {{ PKG }}
+
+4. **Monitor security advisories**
+
+   * Enable GitHub security alerts for your fork
+   * Subscribe to release notifications
+   * Review CHANGELOG.md for security fixes
+
+Known Security Considerations
+----------------------------
+
+File Operations
+~~~~~~~~~~~~~~
+
+When working with files:
+
+.. code-block:: python
+
+   from pathlib import Path
+
+   def safe_file_operation(filename: str) -> None:
+       """Safely handle file operations."""
+       # Use pathlib for safe path handling
+       path = Path(filename).resolve()
+
+       # Validate path is within expected directory
+       base_dir = Path("/safe/directory").resolve()
+       if not path.is_relative_to(base_dir):
+           raise ValueError("Invalid file path")
+
+       # Use context manager
+       with path.open("r", encoding="utf-8") as f:
+           content = f.read()
+
+Network Operations
+~~~~~~~~~~~~~~~~~
+
+When making network requests:
+
+.. code-block:: python
+
+   import httpx
+
+   async def safe_request(url: str) -> dict:
+       """Safely make HTTP requests."""
+       # Validate URL
+       if not url.startswith(("https://", "http://")):
+           raise ValueError("Invalid URL scheme")
+
+       # Use timeouts
+       async with httpx.AsyncClient(timeout=10.0) as client:
+           response = await client.get(url)
+           response.raise_for_status()
+           return response.json()
+
+Data Serialization
+~~~~~~~~~~~~~~~~~
+
+Prefer JSON over pickle:
+
+.. code-block:: python
+
+   import json
+
+   def safe_serialization(data: dict) -> str:
+       """Safely serialize data."""
+       # Use JSON, not pickle
+       return json.dumps(data)
+
+   def safe_deserialization(data: str) -> dict:
+       """Safely deserialize data."""
+       # Validate JSON
+       try:
+           return json.loads(data)
+       except json.JSONDecodeError as e:
+           raise ValueError("Invalid JSON data") from e
+
+Security Tooling
+---------------
+
+Local Security Checks
+~~~~~~~~~~~~~~~~~~~~
+
+Run security checks locally:
+
+.. code-block:: bash
+
+   # Bandit security linter
+   uv run bandit -r src/ -f txt
+
+   # Safety dependency checker (if installed)
+   uv run safety check
+
+   # Check for dangerous API usage
+   grep -rn -E '\beval\(|\bexec\(|pickle\.loads' src/
+
+Pre-commit Hooks
+~~~~~~~~~~~~~~~
+
+Install pre-commit hooks to run checks automatically:
+
+.. code-block:: bash
+
+   uv run pre-commit install
+   uv run pre-commit run --all-files
+
+CI Security Scans
+~~~~~~~~~~~~~~~~
+
+Every PR and push triggers:
+
+* Bandit static analysis
+* Dependency vulnerability checks
+* Code quality checks
+
+Security Updates
+---------------
+
+Security updates are released as:
+
+* **Patch versions** for non-breaking security fixes (e.g., 1.0.1)
+* **Minor versions** if new features are needed for security
+* **Major versions** for breaking security changes
+
+All security updates are documented in:
+
+* ``CHANGELOG.md``
+* GitHub Security Advisories
+* Release notes
+
+Acknowledgments
+--------------
+
+We appreciate security researchers who responsibly disclose vulnerabilities. Security reports will be acknowledged in:
+
+* Release notes
+* CHANGELOG.md (with permission)
+* Security advisories
+
+Contact
+-------
+
+For security concerns:
+
+* Email: {{ AUTHOR_EMAIL }}
+* GitHub Security Advisories: https://github.com/{{ GITHUB_USERNAME }}/{{ PKG }}/security/advisories
+
+For general issues:
+
+* GitHub Issues: https://github.com/{{ GITHUB_USERNAME }}/{{ PKG }}/issues
+* GitHub Discussions: https://github.com/{{ GITHUB_USERNAME }}/{{ PKG }}/discussions

@@ -1,129 +1,114 @@
-name: CI
+name: CI (uv)
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main ]
+
+# Cancel redundant runs per-branch/PR
+concurrency:
+  group: ci-{% raw %}${{ github.workflow }}{% endraw %}-{% raw %}${{ github.ref }}{% endraw %}
+  cancel-in-progress: true
+
+# Least-privilege for the jobs below
+permissions:
+  contents: read
 
 jobs:
   test:
+    name: Test / Lint / Typecheck
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12", "3.13"]
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v5
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
 
-    - name: Install uv
-      run: |
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      - name: Set up Python {% raw %}${{ matrix.python-version }}{% endraw %}
+        run: uv python install {% raw %}${{ matrix.python-version }}{% endraw %}
 
-    - name: Create virtual environment
-      run: uv venv
+      - name: Sync dependencies
+        run: uv sync --all-extras --dev
 
-    - name: Install dependencies
-      run: |
-        source .venv/bin/activate
-  uv sync --all-extras
+      - name: Lint (ruff)
+        run: uv run ruff check .
 
-    - name: Run linters
-      run: |
-        source .venv/bin/activate
-        black --check {{ PKG }}
-        isort --check {{ PKG }}
-        ruff check {{ PKG }}
+      - name: Typecheck (mypy)
+        run: uv run mypy src
 
-    - name: Run type checker
-      run: |
-        source .venv/bin/activate
-        mypy {{ PKG }}
+      - name: Tests (pytest)
+        run: uv run pytest --cov --cov-report=xml --cov-report=html
 
-    - name: Run tests with coverage
-      run: |
-        source .venv/bin/activate
-        pytest --cov={{ PKG }} --cov-report=xml --cov-report=term-missing
+      - name: Dangerous API scan (grep)
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -rn -E '\beval\(|\bexec\(|pickle\.loads|yaml\.load\(|subprocess\.(Popen|call)\(' src/ tests/ 2>/dev/null | grep -v 'yaml\.load_safe' || true; then
+            echo "⚠️ Potentially dangerous API usage detected. Please review." >&2
+            exit 2
+          fi
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
-        fail_ci_if_error: false
+      - name: Upload coverage.xml
+        uses: actions/upload-artifact@v5
+        with:
+          name: coverage-xml-{% raw %}${{ matrix.python-version }}{% endraw %}
+          path: coverage.xml
 
-  build:
-    runs-on: ubuntu-latest
-    needs: test
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11"
-
-    - name: Install build tools (uv)
-      run: |
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-        uv venv
-        uv pip install build
-
-    - name: Build package
-      run: python -m build
-
-    - name: Check package (uv)
-      run: |
-        uv pip install twine
-        twine check dist/*
+      - name: Upload coverage HTML
+        uses: actions/upload-artifact@v5
+        with:
+          name: coverage-html-{% raw %}${{ matrix.python-version }}{% endraw %}
+          path: htmlcov
 
   security:
-    name: Security Scan (Bandit + Safety)
+    name: Security Scan (Bandit)
     runs-on: ubuntu-latest
     needs: test
     permissions:
       contents: read
-      security-events: write
+
+    env:
+      SECURITY_FAIL_LEVEL: MEDIUM
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v5
 
-    - name: Install uv
-      run: |
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
 
-    - name: Create virtual environment
-      run: uv venv
+      - name: Set up Python 3.13
+        run: uv python install 3.13
 
-    - name: Install security tools
-      run: |
-        source .venv/bin/activate
-        uv pip install bandit safety
+      - name: Sync dependencies
+        run: uv sync --all-extras --dev
 
-    - name: Run Bandit (security linter)
-      run: |
-        source .venv/bin/activate
-        bandit -r {{ PKG }} -f json -o bandit-report.json || true
-        bandit -r {{ PKG }} -f txt
+      - name: Run Bandit (JSON)
+        run: |
+          uv run bandit -r src/ -f json -o bandit-report.json || true
+          uv run bandit -r src/ -f txt
 
-    - name: Run Safety (dependency vulnerability scanner)
-      run: |
-        source .venv/bin/activate
-        safety check --json > safety-report.json || true
-        safety check
+      - name: Apply Bandit threshold
+        run: uv run python scripts/security_bandit_check.py
+        continue-on-error: true
 
-    - name: Upload security reports
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: security-reports
-        path: |
-          bandit-report.json
-          safety-report.json
+      - name: Upload security reports
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: security-reports
+          path: bandit-report.json

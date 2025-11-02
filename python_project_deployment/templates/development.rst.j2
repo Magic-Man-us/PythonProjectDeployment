@@ -1,0 +1,333 @@
+Development Guide
+================
+
+This guide covers development workflow, testing, and contribution practices for {{ PKG }}.
+
+Setting Up Development Environment
+---------------------------------
+
+Prerequisites
+~~~~~~~~~~~~
+
+* Python 3.11 or higher
+* `uv <https://docs.astral.sh/uv/>`_ (recommended) or pip
+* git
+
+Clone and Install
+~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   # Clone the repository
+   git clone https://github.com/{{ GITHUB_USERNAME }}/{{ PKG }}.git
+   cd {{ PKG }}
+
+   # Create virtual environment and install dependencies
+   uv sync --all-extras
+
+   # Install pre-commit hooks
+   uv run pre-commit install
+
+Development Workflow
+-------------------
+
+Making Changes
+~~~~~~~~~~~~~
+
+1. Create a new branch:
+
+   .. code-block:: bash
+
+      git checkout -b feature/your-feature-name
+
+2. Make your changes and write tests
+
+3. Run the test suite:
+
+   .. code-block:: bash
+
+      uv run pytest
+
+4. Check code quality:
+
+   .. code-block:: bash
+
+      uv run ruff check .
+      uv run ruff format .
+      uv run mypy src
+
+5. Commit your changes:
+
+   .. code-block:: bash
+
+      git add .
+      git commit -m "feat: add your feature"
+
+6. Push and create a pull request:
+
+   .. code-block:: bash
+
+      git push origin feature/your-feature-name
+
+Code Style
+~~~~~~~~~
+
+This project follows PEP 8 and uses:
+
+* **Ruff** for linting and formatting
+* **mypy** for type checking
+* **Google-style docstrings**
+
+Pre-commit hooks will automatically run these checks before each commit.
+
+Testing
+------
+
+Running Tests
+~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   # Run all tests
+   uv run pytest
+
+   # Run with coverage
+   uv run pytest --cov --cov-report=html
+
+   # Run specific test file
+   uv run pytest tests/test_example.py
+
+   # Run specific test
+   uv run pytest tests/test_example.py::TestExample::test_method
+
+Writing Tests
+~~~~~~~~~~~~
+
+Tests are written using pytest. Place test files in the ``tests/`` directory:
+
+.. code-block:: python
+
+   """Test example module."""
+
+   import pytest
+   from {{ PKG }} import ExampleClass
+
+   def test_example_creation():
+       """Test creating an instance."""
+       obj = ExampleClass(name="test", value=42)
+       assert obj.name == "test"
+       assert obj.value == 42
+
+   def test_example_processing():
+       """Test processing data."""
+       obj = ExampleClass(name="test", value=42)
+       result = obj.process()
+       assert "name" in result
+
+Test Markers
+~~~~~~~~~~~
+
+Use markers to categorize tests:
+
+.. code-block:: python
+
+   @pytest.mark.unit
+   def test_unit():
+       """Unit test."""
+       pass
+
+   @pytest.mark.integration
+   def test_integration():
+       """Integration test."""
+       pass
+
+   @pytest.mark.slow
+   def test_slow_operation():
+       """Slow test."""
+       pass
+
+Run specific markers:
+
+.. code-block:: bash
+
+   # Run only unit tests
+   pytest -m unit
+
+   # Skip slow tests
+   pytest -m "not slow"
+
+Documentation
+------------
+
+Building Documentation
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   # Build HTML documentation
+   uv run sphinx-build -b html docs docs/_build/html
+
+   # Open in browser
+   open docs/_build/html/index.html
+
+Writing Documentation
+~~~~~~~~~~~~~~~~~~~~
+
+* Place ``.rst`` files in the ``docs/`` directory
+* Use Sphinx directives for code examples
+* Keep docstrings up to date (Google style)
+
+Example docstring:
+
+.. code-block:: python
+
+   def example_function(param1: str, param2: int) -> dict[str, int]:
+       """Brief description of the function.
+
+       Longer description if needed. Can span multiple lines
+       and include more details about the function behavior.
+
+       Args:
+           param1: Description of param1
+           param2: Description of param2
+
+       Returns:
+           Description of return value
+
+       Raises:
+           ValueError: When param2 is negative
+           TypeError: When param1 is not a string
+
+       Example:
+           >>> result = example_function("test", 42)
+           >>> print(result)
+           {'test': 42}
+       """
+       if param2 < 0:
+           raise ValueError("param2 must be non-negative")
+       return {param1: param2}
+
+Release Process
+--------------
+
+Version Bumping
+~~~~~~~~~~~~~~
+
+This project follows `Semantic Versioning <https://semver.org/>`_:
+
+* **MAJOR**: Incompatible API changes
+* **MINOR**: New functionality (backward-compatible)
+* **PATCH**: Bug fixes (backward-compatible)
+
+Update version in ``pyproject.toml``:
+
+.. code-block:: toml
+
+   [project]
+   version = "0.2.0"
+
+Update CHANGELOG
+~~~~~~~~~~~~~~~
+
+Add release notes to ``CHANGELOG.md`` following `Keep a Changelog <https://keepachangelog.com/>`_ format:
+
+.. code-block:: markdown
+
+   ## [0.2.0] - 2025-11-02
+
+   ### Added
+   - New feature description
+
+   ### Changed
+   - Changed behavior description
+
+   ### Fixed
+   - Bug fix description
+
+Creating a Release
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   # Ensure main branch is up to date
+   git checkout main
+   git pull
+
+   # Tag the release
+   git tag -a v0.2.0 -m "Release version 0.2.0"
+   git push origin v0.2.0
+
+   # GitHub Actions will automatically publish to PyPI
+
+Continuous Integration
+--------------------
+
+GitHub Actions workflows:
+
+* **CI** (``ci.yaml``): Runs tests, linting, type checking on Python 3.11, 3.12, 3.13
+* **Security** (in ``ci.yaml``): Runs Bandit security scans
+* **Publish** (``publish.yaml``): Publishes to PyPI on release
+* **Docs** (``docs.yaml``): Builds and deploys documentation to GitHub Pages
+
+Security
+--------
+
+Security Scanning
+~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   # Run Bandit locally
+   uv run bandit -r src/
+
+   # Run Safety for dependency vulnerabilities
+   uv run safety check
+
+Best Practices
+~~~~~~~~~~~~~
+
+* Never commit secrets or credentials
+* Use environment variables for sensitive data
+* Review security scan results in CI
+* Keep dependencies up to date (Dependabot helps)
+
+Common Issues
+------------
+
+Import errors
+~~~~~~~~~~~~
+
+If you see import errors, ensure you've installed the package in development mode:
+
+.. code-block:: bash
+
+   uv sync --all-extras
+
+Type checking errors
+~~~~~~~~~~~~~~~~~~~
+
+If mypy reports errors, check:
+
+* All functions have type hints
+* Return types are specified
+* Optional parameters use ``param: str | None`` syntax
+
+Pre-commit failures
+~~~~~~~~~~~~~~~~~~
+
+If pre-commit hooks fail:
+
+.. code-block:: bash
+
+   # Run pre-commit manually
+   uv run pre-commit run --all-files
+
+   # Update pre-commit hooks
+   uv run pre-commit autoupdate
+
+Getting Help
+-----------
+
+* Open an issue on `GitHub <https://github.com/{{ GITHUB_USERNAME }}/{{ PKG }}/issues>`_
+* Start a discussion on `GitHub Discussions <https://github.com/{{ GITHUB_USERNAME }}/{{ PKG }}/discussions>`_
+* Check the `documentation <https://{{ PKG }}.readthedocs.io>`_

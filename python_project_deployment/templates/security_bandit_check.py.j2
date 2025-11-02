@@ -1,0 +1,67 @@
+"""Bandit security check with configurable thresholds.
+
+This script reads the Bandit JSON report and applies severity thresholds.
+If the number of issues at or above the threshold exceeds limits, the script exits with error code 1.
+
+Environment Variables:
+    SECURITY_FAIL_LEVEL: Minimum severity to fail on (LOW, MEDIUM, HIGH). Default: MEDIUM
+"""
+
+import json
+import sys
+from pathlib import Path
+
+
+def main() -> None:
+    """Run Bandit threshold check."""
+    report_path = Path("bandit-report.json")
+
+    if not report_path.exists():
+        print("❌ Bandit report not found: bandit-report.json")
+        sys.exit(1)
+
+    with report_path.open() as f:
+        report = json.load(f)
+
+    # Get threshold from environment or use default
+    import os
+    threshold = os.getenv("SECURITY_FAIL_LEVEL", "MEDIUM").upper()
+
+    # Severity levels
+    severity_order = {"LOW": 1, "MEDIUM": 2, "HIGH": 3}
+    threshold_level = severity_order.get(threshold, 2)
+
+    # Count issues at or above threshold
+    issues = report.get("results", [])
+    filtered_issues = [
+        issue for issue in issues
+        if severity_order.get(issue.get("issue_severity", "LOW"), 1) >= threshold_level
+    ]
+
+    print(f"\n{'='*60}")
+    print(f"Bandit Security Report")
+    print(f"{'='*60}")
+    print(f"Threshold: {threshold}")
+    print(f"Total issues: {len(issues)}")
+    print(f"Issues at or above {threshold}: {len(filtered_issues)}")
+
+    if filtered_issues:
+        print(f"\n⚠️  Found {len(filtered_issues)} security issues at or above {threshold} severity:")
+        for issue in filtered_issues:
+            print(f"\n  • {issue.get('issue_text', 'Unknown issue')}")
+            print(f"    Severity: {issue.get('issue_severity', 'UNKNOWN')}")
+            print(f"    Confidence: {issue.get('issue_confidence', 'UNKNOWN')}")
+            print(f"    File: {issue.get('filename', 'unknown')}:{issue.get('line_number', '?')}")
+
+        print(f"\n{'='*60}")
+        print(f"❌ Security check failed: {len(filtered_issues)} issues found")
+        print(f"{'='*60}\n")
+        sys.exit(1)
+    else:
+        print(f"\n✅ No security issues found at or above {threshold} severity")
+        print(f"{'='*60}\n")
+        sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

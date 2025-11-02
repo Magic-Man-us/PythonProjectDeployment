@@ -1,0 +1,63 @@
+"""Safety security check for dependency vulnerabilities.
+
+This script reads the Safety JSON report and checks for known vulnerabilities
+in dependencies.
+
+Environment Variables:
+    SAFETY_FAIL_ON_CVE: Fail if any CVE is found (true/false). Default: true
+"""
+
+import json
+import sys
+from pathlib import Path
+
+
+def main() -> None:
+    """Run Safety threshold check."""
+    report_path = Path("safety-report.json")
+
+    if not report_path.exists():
+        print("❌ Safety report not found: safety-report.json")
+        sys.exit(1)
+
+    with report_path.open() as f:
+        try:
+            report = json.load(f)
+        except json.JSONDecodeError:
+            print("❌ Invalid JSON in safety-report.json")
+            sys.exit(1)
+
+    # Safety report structure varies, handle both formats
+    vulnerabilities = report.get("vulnerabilities", [])
+    if not vulnerabilities and isinstance(report, list):
+        vulnerabilities = report
+
+    print(f"\n{'='*60}")
+    print(f"Safety Dependency Vulnerability Report")
+    print(f"{'='*60}")
+    print(f"Total vulnerabilities: {len(vulnerabilities)}")
+
+    if vulnerabilities:
+        print(f"\n⚠️  Found {len(vulnerabilities)} known vulnerabilities:")
+        for vuln in vulnerabilities:
+            package = vuln.get("package_name", "unknown")
+            version = vuln.get("analyzed_version", "unknown")
+            cve = vuln.get("CVE", "N/A")
+            advisory = vuln.get("advisory", "No advisory available")
+
+            print(f"\n  • Package: {package} ({version})")
+            print(f"    CVE: {cve}")
+            print(f"    Advisory: {advisory}")
+
+        print(f"\n{'='*60}")
+        print(f"❌ Security check failed: {len(vulnerabilities)} vulnerabilities found")
+        print(f"{'='*60}\n")
+        sys.exit(1)
+    else:
+        print(f"\n✅ No known vulnerabilities found in dependencies")
+        print(f"{'='*60}\n")
+        sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

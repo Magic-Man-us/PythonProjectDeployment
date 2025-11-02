@@ -1,0 +1,102 @@
+"""Logging configuration for {{ PKG }}."""
+
+import logging
+import sys
+from pathlib import Path
+
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Project root is parent of this file's parent (src/{{ PKG }})
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+LOG_DIR = PROJECT_ROOT / "logs"
+
+
+class LoggerSettings(BaseSettings):
+    """Logger configuration loaded from environment or .env file."""
+
+    model_config = SettingsConfigDict(
+        env_prefix="LOG_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    level: str = Field(
+        default="INFO",
+        description="Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
+    )
+    console_enabled: bool = Field(
+        default=True,
+        description="Enable console logging",
+    )
+    file_enabled: bool = Field(
+        default=True,
+        description="Enable file logging",
+    )
+    format_console: str = Field(
+        default="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        description="Console log format",
+    )
+    format_file: str = Field(
+        default="%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s",
+        description="File log format",
+    )
+    date_format: str = Field(
+        default="%Y-%m-%d %H:%M:%S",
+        description="Date format for logs",
+    )
+
+
+def setup_logger(
+    name: str,
+    settings: LoggerSettings | None = None,
+    log_file: Path | None = None,
+) -> logging.Logger:
+    """Set up and configure a logger instance.
+
+    Args:
+        name: Logger name (typically __name__)
+        settings: Logger settings. If None, loads from environment/defaults
+        log_file: Optional path to log file. Overrides default path in LOG_DIR
+
+    Returns:
+        Configured logger instance
+    """
+    if settings is None:
+        settings = LoggerSettings()
+
+    logger = logging.getLogger(name)
+    logger.setLevel(getattr(logging, settings.level.upper()))
+
+    # Avoid duplicate handlers
+    if logger.hasHandlers():
+        return logger
+
+    # Console handler
+    if settings.console_enabled:
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setLevel(getattr(logging, settings.level.upper()))
+        console_formatter = logging.Formatter(
+            settings.format_console,
+            datefmt=settings.date_format,
+        )
+        console_handler.setFormatter(console_formatter)
+        logger.addHandler(console_handler)
+
+    # File handler
+    if settings.file_enabled:
+        if log_file is None:
+            LOG_DIR.mkdir(parents=True, exist_ok=True)
+            log_file = LOG_DIR / f"{name.replace('.', '_')}.log"
+
+        file_handler = logging.FileHandler(log_file, encoding="utf-8")
+        file_handler.setLevel(getattr(logging, settings.level.upper()))
+        file_formatter = logging.Formatter(
+            settings.format_file,
+            datefmt=settings.date_format,
+        )
+        file_handler.setFormatter(file_formatter)
+        logger.addHandler(file_handler)
+
+    return logger

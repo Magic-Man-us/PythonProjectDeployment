@@ -9,15 +9,18 @@ from python_project_deployment.models import ProjectConfig
 
 def test_project_config_valid(tmp_path: Path) -> None:
     """Test creating a valid ProjectConfig."""
+    test_dir = tmp_path / "test"
+    test_dir.mkdir()
+
     config = ProjectConfig(
         package_name="my_package",
-        target_dir=tmp_path / "test",
+        target_dir=test_dir,
     )
 
     assert config.package_name == "my_package"
-    assert config.target_dir == tmp_path / "test"
+    assert config.target_dir == test_dir
     assert config.author_name == "Your Name"
-    assert config.author_email == "your.email@example.com"
+    assert str(config.author_email) == "your.email@example.com"
 
 
 def test_project_config_invalid_package_name(tmp_path: Path) -> None:
@@ -53,11 +56,14 @@ def test_project_config_relative_path() -> None:
     assert any("target_dir" in str(e["loc"]) for e in errors)
 
 
-def test_project_config_custom_values() -> None:
+def test_project_config_custom_values(tmp_path: Path) -> None:
     """Test ProjectConfig with custom values."""
+    test_dir = tmp_path / "projects"
+    test_dir.mkdir()
+
     config = ProjectConfig(
         package_name="awesome_pkg",
-        target_dir=Path("/home/user/projects"),
+        target_dir=test_dir,
         author_name="John Doe",
         author_email="john@example.com",
         description="An awesome package",
@@ -66,26 +72,32 @@ def test_project_config_custom_values() -> None:
 
     assert config.package_name == "awesome_pkg"
     assert config.author_name == "John Doe"
-    assert config.author_email == "john@example.com"
+    assert str(config.author_email) == "john@example.com"
     assert config.description == "An awesome package"
     assert config.license_type == "Apache-2.0"
 
 
 def test_destination_path(tmp_path: Path) -> None:
     """Test the destination_path property."""
+    test_dir = tmp_path / "test"
+    test_dir.mkdir()
+
     config = ProjectConfig(
         package_name="my_package",
-        target_dir=tmp_path / "test",
+        target_dir=test_dir,
     )
 
-    assert config.destination_path == tmp_path / "test" / "my_package"
+    assert config.destination_path == test_dir / "my_package"
 
 
 def test_to_template_context(tmp_path: Path) -> None:
     """Test conversion to template context."""
+    test_dir = tmp_path / "test"
+    test_dir.mkdir()
+
     config = ProjectConfig(
         package_name="my_package",
-        target_dir=tmp_path / "test",
+        target_dir=test_dir,
         author_name="Jane Doe",
         author_email="jane@example.com",
         description="Test package",
@@ -99,10 +111,14 @@ def test_to_template_context(tmp_path: Path) -> None:
     assert context["AUTHOR_EMAIL"] == "jane@example.com"
     assert context["DESCRIPTION"] == "Test package"
     assert context["LICENSE"] == "MIT"
+    assert context["GITHUB_URL"] == "https://github.com/your-username/my_package"
 
 
 def test_valid_package_names(tmp_path: Path) -> None:
     """Test various valid package names."""
+    test_dir = tmp_path / "test"
+    test_dir.mkdir()
+
     valid_names = [
         "simple",
         "with_underscore",
@@ -113,9 +129,12 @@ def test_valid_package_names(tmp_path: Path) -> None:
     ]
 
     for name in valid_names:
+        # Create separate dir for each to avoid "already exists" error
+        subdir = test_dir / name
+        subdir.mkdir()
         config = ProjectConfig(
             package_name=name,
-            target_dir=tmp_path / "test",
+            target_dir=subdir,
         )
         assert config.package_name == name
 
