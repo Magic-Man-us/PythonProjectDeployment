@@ -101,6 +101,8 @@ class Scaffolder:
             (".gitignore.j2", dest / ".gitignore"),
             ("LICENSE.j2", dest / "LICENSE"),
             ("ci.yaml.j2", dest / ".github" / "workflows" / "ci.yaml"),
+            ("Makefile.j2", dest / "Makefile"),
+            ("dependabot.yml.j2", dest / ".github" / "dependabot.yml"),
             ("package_init.py.j2", dest / self.config.package_name / "__init__.py"),
             ("hello.py.j2", dest / self.config.package_name / "hello.py"),
             ("test_hello.py.j2", dest / "tests" / "test_hello.py"),
@@ -157,8 +159,9 @@ class Scaffolder:
             # Use uv to create venv and run installs
             self.logger.info("Using uv binary: %s", uv_path)
             subprocess.run([uv_path, "venv"], cwd=dest, check=True, capture_output=True)
+            # Use uv sync to install dev extras (preferred over direct pip usage)
             subprocess.run(
-                [uv_path, "pip", "install", "-e", ".[dev]"],
+                [uv_path, "sync", "--all-extras"],
                 cwd=dest,
                 check=True,
                 capture_output=True,
