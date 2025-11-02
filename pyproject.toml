@@ -24,25 +24,25 @@ classifiers = [
 ]
 
 dependencies = [
-    "click>=8.1.0",
-    "jinja2>=3.1.0",
-    "pydantic>=2.0.0",
+    "click>=8.3.0",
+    "jinja2>=3.1.6",
+    "pydantic>=2.12.3",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.0.0",
-    "pytest-cov>=4.1.0",
-    "black>=23.11.0",
-    "isort>=5.12.0",
-    "mypy>=1.7.0",
-    "ruff>=0.14.0",
-    "pre-commit>=3.8.0",
-    "bandit>=1.7.0",
-    "safety>=2.0.0",
-    "sphinx>=7.0.0",
-    "sphinx-rtd-theme>=2.0.0",
-    "sphinx-autodoc-typehints>=2.2.0",
+    "pytest>=8.4.2",
+    "pytest-cov>=7.0.0",
+    "black>=25.9.0",
+    "isort>=7.0.0",
+    "mypy>=1.18.2",
+    "ruff>=0.14.3",
+    "pre-commit>=4.3.0",
+    "bandit>=1.8.6",
+    "safety>=3.6.2",
+    "sphinx>=8.2.3",
+    "sphinx-rtd-theme>=3.0.2",
+    "sphinx-autodoc-typehints>=3.5.2",
 ]
 
 [project.scripts]
