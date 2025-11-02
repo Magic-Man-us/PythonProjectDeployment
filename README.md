@@ -4,12 +4,12 @@ A modern scaffolding tool for creating new Python packages with best practices b
 
 ## Features
 
-- 🚀 **Fast Setup**: Create fully-configured Python packages in seconds
-- 📦 **uv Integration**: Modern dependency management with `uv`
-- ✅ **Testing Ready**: Pre-configured `pytest` with coverage
-- 📚 **Documentation**: Sphinx docs with `furo` theme
-- 🔄 **CI/CD**: GitHub Actions workflow included
-- 🎯 **Best Practices**: PEP 8 compliant, type hints, proper structure
+-  **Fast Setup**: Create fully-configured Python packages in seconds
+-  **uv Integration**: Modern dependency management with `uv`
+-  **Testing Ready**: Pre-configured `pytest` with coverage
+-  **Documentation**: Sphinx docs with `furo` theme
+-  **CI/CD**: GitHub Actions workflow included
+-  **Best Practices**: PEP 8 compliant, type hints, proper structure
 
 ## Installation
 
