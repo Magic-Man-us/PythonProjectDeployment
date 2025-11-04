@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+from typing import Any
 
 import click
 from pydantic import ValidationError
@@ -106,11 +107,11 @@ def main(
 
     try:
         # Load scaffolder settings (supports .env files and env vars)
-        settings_kwargs = {}
+        settings_kwargs: dict[str, Any] = {}
         if log_level:
             settings_kwargs["log_level"] = log_level.upper()
         if dry_run:
-            settings_kwargs["dry_run"] = True
+            settings_kwargs["dry_run"] = dry_run
 
         settings = ScaffolderSettings(**settings_kwargs)
 

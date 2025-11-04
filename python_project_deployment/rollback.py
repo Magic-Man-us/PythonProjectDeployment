@@ -196,7 +196,7 @@ class RollbackManager:
         exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
         exc_tb: Any,
-    ) -> bool:
+    ) -> None:
         """Exit context manager, executing rollback if an exception occurred.
 
         Args:
@@ -205,7 +205,7 @@ class RollbackManager:
             exc_tb: Exception traceback if an exception occurred
 
         Returns:
-            False to propagate the exception (after rollback)
+            None (always propagates exceptions)
         """
         if exc_type is not None:
             logger.error(f"Exception occurred: {exc_type.__name__}: {exc_val}")
@@ -219,9 +219,6 @@ class RollbackManager:
             # Success - clear rollback operations
             logger.debug("Scaffolding completed successfully, clearing rollback operations")
             self.clear_operations()
-
-        # Always propagate the original exception (if any)
-        return False
 
     def __repr__(self) -> str:
         """Return detailed representation for debugging."""
