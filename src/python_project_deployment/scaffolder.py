@@ -339,7 +339,16 @@ class Scaffolder:
 
         uv_path = shutil.which("uv")
         if uv_path:
-            cmd = ["uv", "run", "sphinx-build", "-b", "html", "docs", "docs/_build/html"]
+            cmd = [
+                "uv",
+                "run",
+                "--all-extras",
+                "sphinx-build",
+                "-b",
+                "html",
+                "docs",
+                "docs/_build/html",
+            ]
         else:
             cmd = ["sphinx-build", "-b", "html", "docs", "docs/_build/html"]
 
