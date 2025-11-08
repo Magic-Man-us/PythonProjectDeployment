@@ -1,4 +1,8 @@
-"""Simple logging configuration for the scaffolder."""
+"""Logging configuration for the scaffolder.
+
+This module provides centralized logging configuration as required
+by .clinerules/01-project-structure.md.
+"""
 
 import logging
 import sys
@@ -10,18 +14,15 @@ def configure_logging(settings: ScaffolderSettings | None = None) -> None:
     """Configure logging with optional file output.
 
     Args:
-        settings: Optional settings for log level and file path
+        settings: Optional settings for log level and file path.
     """
-    # Determine log level
     log_level = logging.INFO
     if settings:
         log_level = getattr(logging, settings.log_level.upper(), logging.INFO)
 
-    # Basic format: time | level | name | message
     log_format = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
     date_format = "%Y-%m-%d %H:%M:%S"
 
-    # Configure root logger
     logging.basicConfig(
         level=log_level,
         format=log_format,
@@ -30,7 +31,6 @@ def configure_logging(settings: ScaffolderSettings | None = None) -> None:
         force=True,
     )
 
-    # Add file handler if configured
     if settings and settings.log_file:
         try:
             file_handler = logging.FileHandler(settings.log_file)
@@ -40,7 +40,6 @@ def configure_logging(settings: ScaffolderSettings | None = None) -> None:
         except Exception as e:
             logging.warning(f"Failed to create file handler: {e}")
 
-    # Quiet noisy loggers
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("asyncio").setLevel(logging.WARNING)
 
@@ -49,9 +48,9 @@ def get_logger(name: str) -> logging.Logger:
     """Get a logger instance.
 
     Args:
-        name: Logger name (typically __name__)
+        name: Logger name (typically __name__).
 
     Returns:
-        Logger instance
+        Logger instance.
     """
     return logging.getLogger(name)

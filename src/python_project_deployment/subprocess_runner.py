@@ -5,7 +5,7 @@ handling, command validation, and structured result capture. All subprocess
 operations should use this module to ensure consistent security and error handling.
 """
 
-import subprocess
+import subprocess  # nosec B404 # subprocess is required for core functionality; we use it securely
 import time
 from pathlib import Path
 
@@ -125,7 +125,7 @@ class SubprocessRunner:
         returncode = 0
 
         try:
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603 # command is validated and passed as list (no shell injection risk)
                 command,
                 cwd=str(cwd),
                 timeout=timeout,

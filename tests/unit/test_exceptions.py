@@ -1,6 +1,7 @@
 """Tests for custom exception hierarchy."""
 
 import pytest
+
 from python_project_deployment.exceptions import (
     ConfigurationError,
     FileSystemError,

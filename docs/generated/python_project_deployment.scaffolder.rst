@@ -3,10 +3,9 @@
 
 .. automodule:: python_project_deployment.scaffolder
 
-   
+
    .. rubric:: Classes
 
    .. autosummary::
-   
+
       Scaffolder
-   

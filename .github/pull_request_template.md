@@ -28,7 +28,7 @@ Fixes #(issue number)
 
 - [Brief description of change 1]
 - [Brief description of change 2]
-- [Brief description of change 3] 
+- [Brief description of change 3]
 
 ## Testing
 

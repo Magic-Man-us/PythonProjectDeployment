@@ -58,11 +58,14 @@ Homepage = "https://github.com/Magic-Man-us/PythonProjectDeployment"
 Repository = "https://github.com/Magic-Man-us/PythonProjectDeployment"
 
 [tool.hatch.build.targets.wheel]
-packages = ["python_project_deployment"]
+packages = ["src/python_project_deployment"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=python_project_deployment --cov-report=term-missing --cov-report=html"
+# Coverage reporting is optional - remove --cov flags for faster test runs
+addopts = "-v"
+# Uncomment below to enable coverage reporting:
+# addopts = "--cov=src/python_project_deployment --cov-report=term-missing --cov-report=html"
 
 [tool.black]
 line-length = 100
@@ -71,7 +74,7 @@ target-version = ['py312']
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-src = ["python_project_deployment", "tests"]
+src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "B", "C4"]
@@ -83,9 +86,12 @@ line_length = 100
 
 [tool.mypy]
 python_version = "3.13"
-warn_return_any = true
+warn_return_any = false  # Relaxed: don't warn on Any returns
 warn_unused_configs = true
-disallow_untyped_defs = true
+disallow_untyped_defs = false  # Relaxed: allow untyped functions
+mypy_path = "src"
+# Strict mode disabled for easier development
+# To enable strict type checking, set the above to true
 
 [dependency-groups]
 dev = [

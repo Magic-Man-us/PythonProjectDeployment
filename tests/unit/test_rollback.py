@@ -3,6 +3,7 @@
 from unittest.mock import patch
 
 import pytest
+
 from python_project_deployment.exceptions import RollbackError
 from python_project_deployment.rollback import RollbackManager
 

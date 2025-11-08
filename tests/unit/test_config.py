@@ -6,6 +6,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 from pydantic import ValidationError
+
 from python_project_deployment.config import (
     ScaffolderSettings,
     SecurityLevel,

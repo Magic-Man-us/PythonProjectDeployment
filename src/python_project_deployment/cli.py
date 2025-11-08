@@ -14,7 +14,7 @@ from python_project_deployment.exceptions import (
     ScaffolderError,
     SecurityError,
 )
-from python_project_deployment.logging_config import configure_logging
+from python_project_deployment.logger import configure_logging
 from python_project_deployment.models import ProjectConfig
 from python_project_deployment.scaffolder import Scaffolder
 

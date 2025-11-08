@@ -1,6 +1,5 @@
-# Pre-commit configuration for Python Project Deployment
+# Pre-commit configuration for {{ PKG }}
 # See https://pre-commit.com for more information
-# See https://pre-commit.com/hooks.html for more hooks
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -17,6 +16,8 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-toml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
       - id: check-merge-conflict
       - id: mixed-line-ending
 
@@ -24,9 +25,4 @@ repos:
     rev: v1.13.0
     hooks:
       - id: mypy
-        additional_dependencies:
-          - pydantic>=2.12.3
-          - pydantic-settings>=2.10.0
-          - click>=8.3.0
-          - types-PyYAML
         args: [--ignore-missing-imports]

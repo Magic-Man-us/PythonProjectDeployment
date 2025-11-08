@@ -5,6 +5,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
+
 from python_project_deployment.exceptions import SecurityError
 from python_project_deployment.security import (
     find_binary,

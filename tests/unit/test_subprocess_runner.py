@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+
 from python_project_deployment.exceptions import SecurityError, SubprocessError
 from python_project_deployment.subprocess_runner import (
     SubprocessResult,

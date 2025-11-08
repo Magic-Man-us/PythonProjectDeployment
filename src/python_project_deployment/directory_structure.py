@@ -27,6 +27,8 @@ class PackageStructure(BaseModel):
 class TestStructure(BaseModel):
     """Model representing the test directory structure."""
 
+    __test__ = False  # Tell pytest this is not a test class
+
     structure_type: Literal["test"] = "test"
     root: Path = Field(description="Test root directory")
     unit: Path = Field(description="Unit tests directory")

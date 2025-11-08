@@ -8,7 +8,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from python_project_deployment.config import ScaffolderSettings
 from python_project_deployment.directory_structure import DirectoryStructure
 from python_project_deployment.exceptions import PrerequisiteError, SecurityError
-from python_project_deployment.logging_config import get_logger
+from python_project_deployment.logger import get_logger
 from python_project_deployment.models import ProjectConfig
 from python_project_deployment.rollback import RollbackManager
 from python_project_deployment.security import set_secure_permissions, validate_path_traversal
